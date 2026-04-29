@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Toolkit Reference</title>
+<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="data.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #232340;
+  --border: #2d2d50;
+  --text: #e0e0f0;
+  --text-dim: #8888aa;
+  --accent: #7c5cfc;
+  --accent2: #5c9cfc;
+  --red: #fc5c7c;
+  --green: #5cfc9c;
+  --orange: #fcac5c;
+  --yellow: #fcdc5c;
+  --teal: #5cfcdc;
+  --pink: #fc5cdc;
+  --cat-agent: #fc5c7c;
+  --cat-intel: #fcac5c;
+  --cat-mcp: #5cfc9c;
+  --cat-test: #7c5cfc;
+  --cat-rules: #5cfcdc;
+  --cat-ref: #fcdc5c;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+code, pre { font-family:'JetBrains Mono',monospace; }
+
+/* Header */
+.header { background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-bottom:1px solid var(--border); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; backdrop-filter:blur(12px); }
+.header h1 { font-size:22px; font-weight:700; background:linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.header .meta { font-size:13px; color:var(--text-dim); }
+
+/* Search */
+.search-bar { padding:16px 32px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.search-bar input { flex:1; min-width:200px; padding:10px 16px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; outline:none; transition:border .2s; }
+.search-bar input:focus { border-color:var(--accent); }
+.filter-btn { padding:6px 14px; border-radius:16px; border:1px solid var(--border); background:transparent; color:var(--text-dim); font-size:12px; font-weight:500; cursor:pointer; transition:all .2s; white-space:nowrap; }
+.filter-btn:hover, .filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.filter-btn[data-cat="agent"].active { background:var(--cat-agent); border-color:var(--cat-agent); }
+.filter-btn[data-cat="intel"].active { background:var(--cat-intel); border-color:var(--cat-intel); color:#000; }
+.filter-btn[data-cat="mcp"].active { background:var(--cat-mcp); border-color:var(--cat-mcp); color:#000; }
+.filter-btn[data-cat="test"].active { background:var(--cat-test); border-color:var(--cat-test); }
+.filter-btn[data-cat="rules"].active { background:var(--cat-rules); border-color:var(--cat-rules); color:#000; }
+.filter-btn[data-cat="ref"].active { background:var(--cat-ref); border-color:var(--cat-ref); color:#000; }
+
+/* Layout */
+.layout { display:flex; height:calc(100vh - 130px); }
+.graph-panel { width:40%; border-right:1px solid var(--border); position:relative; }
+.graph-panel .label { position:absolute; top:12px; left:16px; font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; z-index:10; }
+#graph { width:100%; height:100%; }
+.cards-panel { width:60%; overflow-y:auto; padding:20px; }
+
+/* Cards */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:16px; overflow:hidden; transition:all .25s; }
+.card:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:0 4px 24px rgba(124,92,252,.15); }
+.card.hidden { display:none; }
+.card-header { padding:16px 20px; cursor:pointer; display:flex; align-items:center; gap:12px; }
+.card-header .dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.card-header h3 { font-size:15px; font-weight:600; flex:1; }
+.card-header .badge { font-size:11px; padding:3px 10px; border-radius:12px; font-weight:500; }
+.card-header .chevron { font-size:18px; color:var(--text-dim); transition:transform .2s; }
+.card.open .card-header .chevron { transform:rotate(90deg); }
+.card-body { padding:0 20px 20px; display:none; }
+.card.open .card-body { display:block; }
+
+/* Markdown content */
+.card-body h2 { font-size:15px; font-weight:600; margin:16px 0 8px; color:var(--accent2); }
+.card-body h3 { font-size:13px; font-weight:600; margin:12px 0 6px; color:var(--text); }
+.card-body p { font-size:13px; line-height:1.6; color:var(--text-dim); margin:6px 0; }
+.card-body ul, .card-body ol { font-size:13px; color:var(--text-dim); margin:6px 0 6px 20px; }
+.card-body li { margin:3px 0; }
+.card-body code { background:var(--surface2); padding:2px 6px; border-radius:4px; font-size:12px; color:var(--green); }
+.card-body pre { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin:8px 0; overflow-x:auto; }
+.card-body pre code { background:transparent; padding:0; color:var(--text-dim); }
+.card-body table { width:100%; border-collapse:collapse; margin:8px 0; font-size:12px; }
+.card-body th { text-align:left; padding:8px 10px; background:var(--surface2); color:var(--text); font-weight:600; border:1px solid var(--border); }
+.card-body td { padding:8px 10px; border:1px solid var(--border); color:var(--text-dim); }
+.card-body strong { color:var(--text); }
+.card-body hr { border:none; border-top:1px solid var(--border); margin:16px 0; }
+.card-body a { color:var(--accent2); text-decoration:none; }
+.card-body a:hover { text-decoration:underline; }
+
+/* File link & meta row */
+.card-meta { display:flex; align-items:center; gap:10px; padding:8px 20px; background:var(--bg); border-top:1px solid var(--border); flex-wrap:wrap; }
+.card-meta a { font-size:11px; text-decoration:none; padding:4px 10px; border-radius:6px; font-weight:500; transition:all .2s; display:inline-flex; align-items:center; gap:5px; }
+.card-meta .file-link { color:var(--green); background:rgba(92,252,156,.08); border:1px solid rgba(92,252,156,.2); }
+.card-meta .file-link:hover { background:rgba(92,252,156,.18); }
+.card-meta .gh-link { color:var(--accent2); background:rgba(92,156,252,.08); border:1px solid rgba(92,156,252,.2); }
+.card-meta .gh-link:hover { background:rgba(92,156,252,.18); }
+.card-meta .updated { font-size:11px; color:var(--text-dim); margin-left:auto; }
+
+/* Header links */
+.header-links { display:flex; gap:8px; align-items:center; }
+.header-links a { font-size:12px; padding:6px 14px; border-radius:8px; text-decoration:none; font-weight:500; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+.header-links .gh-repo { color:#e0e0f0; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); }
+.header-links .gh-repo:hover { background:rgba(255,255,255,.15); }
+.header-links .oss-badge { color:#5cfc9c; background:rgba(92,252,156,.08); border:1px solid rgba(92,252,156,.2); }
+.header-links .oss-badge:hover { background:rgba(92,252,156,.18); }
+
+/* Stats bar */
+.stats { display:flex; gap:20px; padding:12px 32px; background:var(--surface); border-bottom:1px solid var(--border); }
+.stat { font-size:12px; color:var(--text-dim); }
+.stat span { color:var(--text); font-weight:600; }
+
+/* Responsive */
+@media (max-width:900px) {
+  .layout { flex-direction:column; height:auto; }
+  .graph-panel { width:100%; height:400px; border-right:none; border-bottom:1px solid var(--border); }
+  .cards-panel { width:100%; }
+  .header { flex-direction:column; gap:12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>AI Toolkit Reference</h1>
+    <div class="meta">16 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
+  </div>
+  <div class="header-links">
+    <a class="oss-badge" href="https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference" target="_blank">&#9733; Open Source</a>
+    <a class="gh-repo" href="https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference" target="_blank">&#128193; Repo</a>
+  </div>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="search" placeholder="Search reference guides..." autocomplete="off">
+  <button class="filter-btn active" data-cat="all">All</button>
+  <button class="filter-btn" data-cat="agent">AI Agents</button>
+  <button class="filter-btn" data-cat="intel">Code Intel</button>
+  <button class="filter-btn" data-cat="mcp">MCP &amp; Obsidian</button>
+  <button class="filter-btn" data-cat="test">Testing</button>
+  <button class="filter-btn" data-cat="rules">Rules</button>
+  <button class="filter-btn" data-cat="ref">Reference</button>
+</div>
+
+<div class="stats" id="stats"></div>
+
+<div class="layout">
+  <div class="graph-panel">
+    <div class="label">Relationship Graph</div>
+    <div id="graph"></div>
+  </div>
+  <div class="cards-panel" id="cards"></div>
+</div>
+
+<script>
+const GH_BASE = 'https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference/blob/main/guides/';
+// Use build-generated metadata if available, otherwise fallback
+const SHEETS = (typeof SHEET_DEFS_META !== 'undefined' ? SHEET_DEFS_META : [
+  {id:1,name:"Everything Claude Code",file:"Everything-Claude-Code",cat:"agent",catLabel:"AI Agent",color:"#fc5c7c",desc:"Master agent toolkit — 36 agents, 80+ skills, 30+ commands",links:[2,3,4,5,6,14],updated:"Apr 29, 2026"},
+  {id:2,name:"Claude Code Plugins",file:"Claude-Code-Plugins",cat:"agent",catLabel:"AI Agent",color:"#fc5c7c",desc:"Plugin management — install, update, MCP servers",links:[1,3,5,14,6],updated:"Apr 29, 2026"},
+  {id:3,name:"Claude Code Skills",file:"Claude-Code-Skills",cat:"agent",catLabel:"AI Agent",color:"#fc5c7c",desc:"Skill definitions — 1 custom, 6 GitNexus, 14 cluster",links:[1,2,7,4],updated:"Apr 29, 2026"},
+  {id:4,name:"Claude Code Agents",file:"Claude-Code-Agents",cat:"agent",catLabel:"AI Agent",color:"#fc5c7c",desc:"7 AI roles with permissions and boundaries",links:[1,3,7,6,15],updated:"Apr 29, 2026"},
+  {id:5,name:"Claude-Mem",file:"Claude-Mem",cat:"agent",catLabel:"AI Agent",color:"#fc5c7c",desc:"Persistent memory — SQLite + ChromaDB",links:[1,2,4],updated:"Apr 29, 2026"},
+  {id:6,name:"Codex CLI",file:"Codex-CLI",cat:"agent",catLabel:"AI Agent",color:"#fc5c7c",desc:"Adversarial reviewer / FIA — SELECT only",links:[1,4,14,2],updated:"Apr 29, 2026"},
+  {id:7,name:"GitNexus",file:"GitNexus",cat:"intel",catLabel:"Code Intel",color:"#fcac5c",desc:"Knowledge graph — 1,424 symbols, impact analysis",links:[3,4,8,1],updated:"Apr 29, 2026"},
+  {id:8,name:"Graphify",file:"Graphify",cat:"intel",catLabel:"Code Intel",color:"#fcac5c",desc:"Visual graph generator — code to HTML+JSON",links:[7,3],updated:"Apr 29, 2026"},
+  {id:9,name:"Playwright MCP",file:"Playwright-MCP",cat:"test",catLabel:"Testing",color:"#7c5cfc",desc:"Browser automation — navigate, click, screenshot",links:[14,1,15],updated:"Apr 29, 2026"},
+  {id:10,name:"Obsidian MCP",file:"Obsidian-MCP",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"Vault MCP bridge — port 3010 to REST API 27124",links:[13,14,11,12],updated:"Apr 29, 2026"},
+  {id:11,name:"Obsidian API Reader",file:"Obsidian-API-Reader",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"Direct PowerShell/batch REST vault access",links:[10,13,12],updated:"Apr 29, 2026"},
+  {id:12,name:"Sync-To-Obsidian",file:"Sync-To-Obsidian",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"Project-to-vault sync with routing rules",links:[10,11,13],updated:"Apr 29, 2026"},
+  {id:13,name:"MCP Scripts",file:"MCP-Scripts",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"7 launcher scripts — HTTP, stdio, clean restart",links:[14,10,11,12],updated:"Apr 29, 2026"},
+  {id:14,name:"MCP Tool Configs",file:"MCP-Tool-Configs",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"Per-tool JSON configs — Windsurf, Claude, ChatGPT, Codex",links:[13,10,2,1,6],updated:"Apr 29, 2026"},
+  {id:15,name:"Windsurf Rules",file:"Windsurf-Rules",cat:"rules",catLabel:"Rules",color:"#5cfcdc",desc:"Terminal raw mode, frontend-only boundaries",links:[4,9,1],updated:"Apr 29, 2026"},
+  {id:16,name:"500 AI Projects Reference",file:"500-AI-Projects-Reference",cat:"ref",catLabel:"Reference",color:"#fcdc5c",desc:"500+ ML/DL projects mapped to Tri-Lens",links:[],updated:"Apr 29, 2026"}
+]);
+
+
+// Build graph
+const nodes = SHEETS.map(s => ({
+  id: s.id,
+  label: s.name,
+  color: { background: s.color, border: s.color, highlight: { background: '#fff', border: s.color } },
+  font: { color: '#e0e0f0', size: 13, face: 'Inter', strokeWidth: 3, strokeColor: '#0f0f1a' },
+  size: s.links.length > 4 ? 28 : s.links.length > 2 ? 22 : 16,
+  shape: 'dot',
+  borderWidth: 2,
+  shadow: { enabled: true, color: s.color + '40', size: 10 }
+}));
+
+const edgeSet = new Set();
+const edges = [];
+SHEETS.forEach(s => {
+  s.links.forEach(t => {
+    const key = [Math.min(s.id,t), Math.max(s.id,t)].join('-');
+    if (!edgeSet.has(key)) {
+      edgeSet.add(key);
+      edges.push({ from: s.id, to: t, color: { color: '#2d2d50', highlight: '#7c5cfc' }, width: 1.5, smooth: { type: 'continuous' } });
+    }
+  });
+});
+
+const container = document.getElementById('graph');
+const network = new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, {
+  physics: { barnesHut: { gravitationalConstant: -3000, centralGravity: 0.4, springLength: 120, damping: 0.5 }, stabilization: { iterations: 200 } },
+  interaction: { hover: true, tooltipDelay: 100 },
+  layout: { improvedLayout: true }
+});
+
+// Build cards
+const cardsEl = document.getElementById('cards');
+SHEETS.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.cat = s.cat;
+  card.dataset.id = s.id;
+  card.dataset.name = s.name.toLowerCase();
+  card.dataset.file = s.file;
+  const md = MD_CONTENT[s.file] || '';
+  const html = marked.parse(md);
+  const ghUrl = GH_BASE + s.file + '.md';
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="dot" style="background:${s.color}"></div>
+      <h3>${s.name}</h3>
+      <span class="badge" style="background:${s.color}22;color:${s.color};border:1px solid ${s.color}44">${s.catLabel}</span>
+      <span class="chevron">&#9654;</span>
+    </div>
+    <div class="card-meta">
+      <a class="file-link" href="${ghUrl}" target="_blank" title="Open source file">&#128196; ${s.file}.md</a>
+      <a class="gh-link" href="${ghUrl}" target="_blank" title="View on GitHub">&#9733; GitHub</a>
+      <span class="updated">Updated: ${s.updated}</span>
+    </div>
+    <div class="card-body">
+      <p style="margin-bottom:12px;color:var(--text)">${s.desc}</p>
+      <hr>
+      ${html}
+    </div>`;
+  card.querySelector('.card-header').addEventListener('click', () => {
+    card.classList.toggle('open');
+  });
+  cardsEl.appendChild(card);
+});
+
+// Graph click -> open card
+network.on('click', params => {
+  if (params.nodes.length) {
+    const id = params.nodes[0];
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('open'));
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    if (card) {
+      card.classList.add('open');
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+});
+
+// Search
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.card').forEach(c => {
+    const match = c.dataset.name.includes(q) || c.querySelector('.card-body').textContent.toLowerCase().includes(q);
+    c.classList.toggle('hidden', !match);
+  });
+  updateStats();
+});
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.card').forEach(c => {
+      c.classList.toggle('hidden', cat !== 'all' && c.dataset.cat !== cat);
+    });
+    if (cat === 'all') {
+      network.setSelection({ nodes: [], edges: [] });
+    } else {
+      const ids = SHEETS.filter(s => s.cat === cat).map(s => s.id);
+      network.selectNodes(ids);
+    }
+    updateStats();
+  });
+});
+
+function updateStats() {
+  const visible = document.querySelectorAll('.card:not(.hidden)').length;
+  const total = SHEETS.length;
+  document.getElementById('stats').innerHTML = `
+    <div class="stat">Showing <span>${visible}</span> of <span>${total}</span> guides</div>
+    <div class="stat">Categories: <span style="color:var(--cat-agent)">Agent (6)</span> &bull; <span style="color:var(--cat-intel)">Intel (2)</span> &bull; <span style="color:var(--cat-mcp)">MCP (5)</span> &bull; <span style="color:var(--cat-test)">Test (1)</span> &bull; <span style="color:var(--cat-rules)">Rules (1)</span> &bull; <span style="color:var(--cat-ref)">Ref (1)</span></div>
+  `;
+}
+updateStats();
+</script>
+</body>
+</html>
