@@ -9,7 +9,7 @@
 <script src="data.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
+:root, [data-theme="dark"] {
   --bg: #0f0f1a;
   --surface: #1a1a2e;
   --surface2: #232340;
@@ -30,6 +30,22 @@
   --cat-test: #7c5cfc;
   --cat-rules: #5cfcdc;
   --cat-ref: #fcdc5c;
+  --graph-font: #e0e0f0;
+  --graph-stroke: #0f0f1a;
+  --graph-edge: #2d2d50;
+}
+[data-theme="light"] {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface2: #ebedf0;
+  --border: #d0d5dd;
+  --text: #1a1a2e;
+  --text-dim: #5a5f7a;
+  --accent: #6c4cec;
+  --accent2: #3a7ce0;
+  --graph-font: #1a1a2e;
+  --graph-stroke: #ffffff;
+  --graph-edge: #c0c4d0;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
@@ -59,7 +75,7 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .graph-panel.collapsed { width:0 !important; min-width:0 !important; overflow:hidden; }
 .graph-panel .panel-top { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
 .graph-panel .label { font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
-#graph { width:100%; flex:1; }
+#graph { width:100%; flex:1; min-height:200px; }
 .cards-panel { flex:1; min-width:0; overflow-y:auto; padding:20px; transition:width .3s ease; }
 .cards-panel.collapsed { width:0 !important; min-width:0 !important; overflow:hidden; padding:0; }
 
@@ -76,11 +92,21 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .collapse-right { position:absolute; right:-34px; top:50%; transform:translateY(-50%); z-index:25; }
 
 /* Graph controls toolbar */
-.graph-controls { display:flex; gap:4px; flex-shrink:0; }
+.graph-controls { display:flex; gap:4px; flex-shrink:0; flex-wrap:wrap; }
 .graph-controls button { background:var(--surface2); border:1px solid var(--border); color:var(--text-dim); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:500; transition:all .2s; white-space:nowrap; font-family:'Inter',sans-serif; }
 .graph-controls button:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
 .graph-controls button.active-ctrl { background:var(--accent); color:#fff; border-color:var(--accent); }
 .graph-controls .sep { width:1px; background:var(--border); margin:0 2px; }
+
+/* Fullscreen graph */
+.graph-panel.fullscreen { position:fixed; top:0; left:0; width:100vw !important; height:100vh !important; z-index:9999; border-radius:0; }
+.graph-panel.fullscreen .panel-top { border-radius:0; }
+.fullscreen-hint { display:none; position:absolute; bottom:16px; left:50%; transform:translateX(-50%); font-size:11px; color:var(--text-dim); background:var(--surface2); padding:4px 14px; border-radius:6px; border:1px solid var(--border); z-index:10; }
+.graph-panel.fullscreen .fullscreen-hint { display:block; }
+
+/* Theme toggle */
+.theme-toggle { background:var(--surface2); border:1px solid var(--border); color:var(--text-dim); width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .2s; }
+.theme-toggle:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
 
 /* Cards */
 .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:16px; overflow:hidden; transition:all .25s; }
@@ -134,6 +160,9 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .stat { font-size:12px; color:var(--text-dim); }
 .stat span { color:var(--text); font-weight:600; }
 
+/* Edge animation canvas overlay */
+.edge-anim-canvas { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
+
 /* Responsive */
 @media (max-width:900px) {
   .layout { flex-direction:column; height:auto; }
@@ -153,6 +182,7 @@ code, pre { font-family:'JetBrains Mono',monospace; }
     <div class="meta">16 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
   </div>
   <div class="header-links">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light theme">&#9788;</button>
     <a class="oss-badge" href="https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference" target="_blank">&#9733; Open Source</a>
     <a class="gh-repo" href="https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference" target="_blank">&#128193; Repo</a>
   </div>
@@ -184,9 +214,13 @@ code, pre { font-family:'JetBrains Mono',monospace; }
         <button onclick="cycleLayout()" title="Switch graph layout" id="btnLayout">Layout</button>
         <div class="sep"></div>
         <button onclick="graphReset()" title="Reset to default view">Reset</button>
+        <div class="sep"></div>
+        <button onclick="exportPNG()" title="Download graph as PNG">PNG</button>
+        <button onclick="toggleFullscreen()" title="Fullscreen graph" id="btnFullscreen">&#9974;</button>
       </div>
     </div>
     <div id="graph"></div>
+    <span class="fullscreen-hint">Press ESC to exit fullscreen</span>
   </div>
   <div class="resize-handle" id="resizeHandle"></div>
   <div class="cards-panel" id="cards">
@@ -218,36 +252,100 @@ const SHEETS = (typeof SHEET_DEFS_META !== 'undefined' ? SHEET_DEFS_META : [
 ]);
 
 
-// Build graph
-const nodes = SHEETS.map(s => ({
+// Category icons
+const CAT_ICON = { agent:'\uD83E\uDD16', intel:'\uD83E\uDDE0', mcp:'\uD83D\uDD0C', test:'\uD83E\uDDEA', rules:'\uD83D\uDCCB', ref:'\uD83D\uDCDA' };
+
+// Build graph nodes with icons + tooltips
+const nodesArr = SHEETS.map(s => ({
   id: s.id,
-  label: s.name,
-  color: { background: s.color, border: s.color, highlight: { background: '#fff', border: s.color } },
-  font: { color: '#e0e0f0', size: 13, face: 'Inter', strokeWidth: 3, strokeColor: '#0f0f1a' },
-  size: s.links.length > 4 ? 28 : s.links.length > 2 ? 22 : 16,
+  label: (CAT_ICON[s.cat] || '') + ' ' + s.name,
+  title: '<b>' + s.name + '</b><br>' + s.desc + '<br><i>' + s.links.length + ' connections</i>',
+  color: { background: s.color, border: s.color, highlight: { background: '#fff', border: s.color }, hover: { background: s.color + 'cc', border: '#fff' } },
+  font: { color: getComputedStyle(document.documentElement).getPropertyValue('--graph-font').trim() || '#e0e0f0', size: 13, face: 'Inter', strokeWidth: 3, strokeColor: getComputedStyle(document.documentElement).getPropertyValue('--graph-stroke').trim() || '#0f0f1a' },
+  size: s.links.length > 4 ? 30 : s.links.length > 2 ? 24 : 18,
   shape: 'dot',
   borderWidth: 2,
   shadow: { enabled: true, color: s.color + '40', size: 10 }
 }));
+const nodesDS = new vis.DataSet(nodesArr);
 
+// Build edges — thickness based on shared connections (weight)
 const edgeSet = new Set();
-const edges = [];
+const edgesArr = [];
 SHEETS.forEach(s => {
   s.links.forEach(t => {
     const key = [Math.min(s.id,t), Math.max(s.id,t)].join('-');
     if (!edgeSet.has(key)) {
       edgeSet.add(key);
-      edges.push({ from: s.id, to: t, color: { color: '#2d2d50', highlight: '#7c5cfc' }, width: 1.5, smooth: { type: 'continuous' } });
+      const target = SHEETS.find(x => x.id === t);
+      const shared = target ? s.links.filter(l => target.links.includes(l)).length : 0;
+      const w = 1 + Math.min(shared, 4) * 0.8;
+      edgesArr.push({ from: s.id, to: t, color: { color: getComputedStyle(document.documentElement).getPropertyValue('--graph-edge').trim() || '#2d2d50', highlight: '#7c5cfc', hover: '#7c5cfc' }, width: w, smooth: { type: 'continuous' } });
     }
   });
 });
+const edgesDS = new vis.DataSet(edgesArr);
 
 const container = document.getElementById('graph');
-const network = new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, {
+const network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, {
   physics: { barnesHut: { gravitationalConstant: -3000, centralGravity: 0.4, springLength: 120, damping: 0.5 }, stabilization: { iterations: 200 } },
-  interaction: { hover: true, tooltipDelay: 100 },
+  interaction: { hover: true, tooltipDelay: 200, navigationButtons: false, multiselect: false },
   layout: { improvedLayout: true }
 });
+network.once('stabilizationIterationsDone', () => {
+  network.fit({ animation: { duration: 500 } });
+});
+
+// === Neighbor highlight on hover ===
+let highlightActive = false;
+network.on('hoverNode', params => {
+  highlightNeighbors(params.node);
+});
+network.on('blurNode', () => {
+  resetHighlight();
+});
+
+function highlightNeighbors(nodeId) {
+  const connNodes = network.getConnectedNodes(nodeId);
+  const connEdges = network.getConnectedEdges(nodeId);
+  const allNodes = nodesDS.get();
+  const allEdges = edgesDS.get();
+  allNodes.forEach(n => {
+    if (n.id === nodeId || connNodes.includes(n.id)) {
+      n.opacity = 1.0;
+    } else {
+      n.opacity = 0.15;
+    }
+  });
+  allEdges.forEach(e => {
+    if (connEdges.includes(e.id)) {
+      e.color = { ...e.color, opacity: 1.0 };
+      e.width = (e._origWidth || e.width) + 1;
+    } else {
+      e.color = { ...e.color, opacity: 0.08 };
+    }
+  });
+  nodesDS.update(allNodes);
+  edgesDS.update(allEdges);
+  highlightActive = true;
+}
+
+function resetHighlight() {
+  if (!highlightActive) return;
+  const allNodes = nodesDS.get();
+  const allEdges = edgesDS.get();
+  allNodes.forEach(n => { n.opacity = 1.0; });
+  allEdges.forEach(e => {
+    e.color = { ...e.color, opacity: 1.0 };
+    const s = SHEETS.find(x => x.id === e.from);
+    const t = SHEETS.find(x => x.id === e.to);
+    const shared = (s && t) ? s.links.filter(l => t.links.includes(l)).length : 0;
+    e.width = 1 + Math.min(shared, 4) * 0.8;
+  });
+  nodesDS.update(allNodes);
+  edgesDS.update(allEdges);
+  highlightActive = false;
+}
 
 // Build cards
 const cardsEl = document.getElementById('cards');
@@ -297,13 +395,27 @@ network.on('click', params => {
   }
 });
 
-// Search
+// Search — syncs cards AND graph
 document.getElementById('search').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
+  const matchIds = [];
   document.querySelectorAll('.card').forEach(c => {
     const match = c.dataset.name.includes(q) || c.querySelector('.card-body').textContent.toLowerCase().includes(q);
     c.classList.toggle('hidden', !match);
+    if (match) matchIds.push(parseInt(c.dataset.id));
   });
+  // Highlight matching nodes in graph
+  if (q.length > 0) {
+    const allNodes = nodesDS.get();
+    allNodes.forEach(n => { n.opacity = matchIds.includes(n.id) ? 1.0 : 0.15; });
+    nodesDS.update(allNodes);
+    if (matchIds.length > 0 && matchIds.length <= 5) {
+      network.selectNodes(matchIds);
+    }
+  } else {
+    resetHighlight();
+    network.setSelection({ nodes: [], edges: [] });
+  }
   updateStats();
 });
 
@@ -464,8 +576,108 @@ function graphReset() {
     layout: { hierarchical: false },
     physics: { enabled: true, barnesHut: { gravitationalConstant: -3000, centralGravity: 0.4, springLength: 120, damping: 0.5 }, stabilization: { iterations: 200 } }
   });
+  resetHighlight();
   setTimeout(() => network.fit({ animation: { duration: 500 } }), 600);
 }
+
+// === Export as PNG ===
+function exportPNG() {
+  const canvas = container.querySelector('canvas');
+  if (!canvas) return;
+  const link = document.createElement('a');
+  link.download = 'ai-toolkit-reference-graph.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// === Fullscreen ===
+function toggleFullscreen() {
+  graphPanel.classList.toggle('fullscreen');
+  setTimeout(() => network.fit({ animation: { duration: 400 } }), 100);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && graphPanel.classList.contains('fullscreen')) {
+    graphPanel.classList.remove('fullscreen');
+    setTimeout(() => network.fit({ animation: { duration: 400 } }), 100);
+  }
+});
+
+// === Theme toggle ===
+let currentTheme = 'dark';
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  const btn = document.getElementById('themeToggle');
+  btn.innerHTML = currentTheme === 'dark' ? '&#9788;' : '&#9790;';
+  btn.title = currentTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  // Update graph colors
+  const cs = getComputedStyle(document.documentElement);
+  const fontColor = cs.getPropertyValue('--graph-font').trim();
+  const strokeColor = cs.getPropertyValue('--graph-stroke').trim();
+  const edgeColor = cs.getPropertyValue('--graph-edge').trim();
+  const allNodes = nodesDS.get();
+  allNodes.forEach(n => {
+    n.font = { ...n.font, color: fontColor, strokeColor: strokeColor };
+  });
+  nodesDS.update(allNodes);
+  const allEdges = edgesDS.get();
+  allEdges.forEach(e => {
+    e.color = { ...e.color, color: edgeColor };
+  });
+  edgesDS.update(allEdges);
+}
+
+// === Animated edge pulses ===
+let animRunning = false;
+let animFrame = null;
+function startEdgeAnimation() {
+  if (animRunning) return;
+  animRunning = true;
+  const canvas = document.createElement('canvas');
+  canvas.className = 'edge-anim-canvas';
+  const graphDiv = document.getElementById('graph');
+  graphDiv.style.position = 'relative';
+  graphDiv.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  let t = 0;
+  function draw() {
+    if (!animRunning) { canvas.remove(); return; }
+    canvas.width = graphDiv.offsetWidth;
+    canvas.height = graphDiv.offsetHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const positions = network.getPositions();
+    const scale = network.getScale();
+    const viewPos = network.getViewPosition();
+    edgesArr.forEach(e => {
+      const from = positions[e.from];
+      const to = positions[e.to];
+      if (!from || !to) return;
+      const fx = (from.x - viewPos.x) * scale + canvas.width / 2;
+      const fy = (from.y - viewPos.y) * scale + canvas.height / 2;
+      const tx = (to.x - viewPos.x) * scale + canvas.width / 2;
+      const ty = (to.y - viewPos.y) * scale + canvas.height / 2;
+      const progress = ((t * 0.003) + (e.from * 0.1)) % 1;
+      const px = fx + (tx - fx) * progress;
+      const py = fy + (ty - fy) * progress;
+      ctx.beginPath();
+      ctx.arc(px, py, 3 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(124, 92, 252, 0.6)';
+      ctx.fill();
+    });
+    t++;
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+function stopEdgeAnimation() {
+  animRunning = false;
+  if (animFrame) cancelAnimationFrame(animFrame);
+  const c = document.querySelector('.edge-anim-canvas');
+  if (c) c.remove();
+}
+// Start animation by default — toggle with: startEdgeAnimation() / stopEdgeAnimation()
+startEdgeAnimation();
+
 </script>
 </body>
 </html>
