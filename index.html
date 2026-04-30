@@ -255,11 +255,31 @@ const SHEETS = (typeof SHEET_DEFS_META !== 'undefined' ? SHEET_DEFS_META : [
 // Category icons
 const CAT_ICON = { agent:'\uD83E\uDD16', intel:'\uD83E\uDDE0', mcp:'\uD83D\uDD0C', test:'\uD83E\uDDEA', rules:'\uD83D\uDCCB', ref:'\uD83D\uDCDA' };
 
-// Build graph nodes with icons + tooltips
+// Per-tool learning tips shown on hover
+const TIPS = {
+  1: 'Tip: Run /agents to list all 36 agents. Use /compact for token-efficient mode.',
+  2: 'Tip: Use /plugins to manage installed plugins. Check MCP server status with /mcp.',
+  3: 'Tip: Skills auto-activate by trigger phrase. Create custom skills in .claude/skills/.',
+  4: 'Tip: Each agent has a FIA level (Full/Intermediate/Audit). Codex is audit-only.',
+  5: 'Tip: Claude-Mem stores memories in SQLite + ChromaDB. Use /memory search to query.',
+  6: 'Tip: Codex CLI is SELECT-only by default. Use --full-auto for write access.',
+  7: 'Tip: Run npx gitnexus analyze to rebuild the index. Use gitnexus_impact before edits.',
+  8: 'Tip: Graphify triggers on "draw diagram" or "visualize". Outputs HTML + JSON + audit.',
+  9: 'Tip: Playwright MCP gives browser control. Use browser_navigate + browser_screenshot.',
+  10: 'Tip: Obsidian MCP bridges port 3010 to the REST API on 27124. Needs Obsidian running.',
+  11: 'Tip: Use read-obsidian-note.ps1 for direct vault access without MCP server.',
+  12: 'Tip: sync-to-obsidian.ps1 routes files by extension. Only syncs included extensions.',
+  13: 'Tip: Run start-mcp-server-http.bat for HTTP transport. Use stdio for Claude Desktop.',
+  14: 'Tip: Each AI tool needs its own JSON config. Check mcp_config/ for per-tool files.',
+  15: 'Tip: terminal_raw.md forces raw output mode. Windsurf is frontend-only in Tri-Lens.',
+  16: 'Tip: Browse by category (NLP, Vision, RL) to find projects relevant to your pipeline.'
+};
+
+// Build graph nodes with icons + tooltips + tips
 const nodesArr = SHEETS.map(s => ({
   id: s.id,
   label: (CAT_ICON[s.cat] || '') + ' ' + s.name,
-  title: '<b>' + s.name + '</b><br>' + s.desc + '<br><i>' + s.links.length + ' connections</i>',
+  title: '<b>' + s.name + '</b><br>' + s.desc + '<br><i>' + s.links.length + ' connections</i><br><br>' + (TIPS[s.id] || ''),
   color: { background: s.color, border: s.color, highlight: { background: '#fff', border: s.color }, hover: { background: s.color + 'cc', border: '#fff' } },
   font: { color: getComputedStyle(document.documentElement).getPropertyValue('--graph-font').trim() || '#e0e0f0', size: 13, face: 'Inter', strokeWidth: 3, strokeColor: getComputedStyle(document.documentElement).getPropertyValue('--graph-stroke').trim() || '#0f0f1a' },
   size: s.links.length > 4 ? 30 : s.links.length > 2 ? 24 : 18,
