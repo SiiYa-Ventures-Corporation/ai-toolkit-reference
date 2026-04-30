@@ -156,9 +156,12 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .header-links .oss-badge:hover { background:rgba(92,252,156,.18); }
 
 /* Stats bar */
-.stats { display:flex; gap:20px; padding:12px 32px; background:var(--surface); border-bottom:1px solid var(--border); }
+.stats { display:flex; gap:20px; padding:12px 32px; background:var(--surface); border-bottom:1px solid var(--border); align-items:center; flex-wrap:wrap; }
 .stat { font-size:12px; color:var(--text-dim); }
 .stat span { color:var(--text); font-weight:600; }
+.stat-cat { cursor:pointer; padding:2px 8px; border-radius:10px; transition:all .2s; border:1px solid transparent; }
+.stat-cat:hover { border-color:currentColor; opacity:.9; }
+.stat-cat.active-stat { border-color:currentColor; background:rgba(255,255,255,.08); }
 
 /* Edge animation canvas overlay */
 .edge-anim-canvas { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
@@ -463,13 +466,59 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
+let activeStatCat = null;
 function updateStats() {
   const visible = document.querySelectorAll('.card:not(.hidden)').length;
   const total = SHEETS.length;
+  const cats = [
+    { key:'agent', label:'Agent', count:SHEETS.filter(s=>s.cat==='agent').length },
+    { key:'intel', label:'Intel', count:SHEETS.filter(s=>s.cat==='intel').length },
+    { key:'mcp', label:'MCP', count:SHEETS.filter(s=>s.cat==='mcp').length },
+    { key:'test', label:'Test', count:SHEETS.filter(s=>s.cat==='test').length },
+    { key:'rules', label:'Rules', count:SHEETS.filter(s=>s.cat==='rules').length },
+    { key:'ref', label:'Ref', count:SHEETS.filter(s=>s.cat==='ref').length }
+  ];
+  const catHtml = cats.map(c => {
+    const active = activeStatCat === c.key ? ' active-stat' : '';
+    return `<span class="stat-cat${active}" style="color:var(--cat-${c.key})" data-scat="${c.key}">${c.label} (${c.count})</span>`;
+  }).join(' &bull; ');
   document.getElementById('stats').innerHTML = `
     <div class="stat">Showing <span>${visible}</span> of <span>${total}</span> guides</div>
-    <div class="stat">Categories: <span style="color:var(--cat-agent)">Agent (6)</span> &bull; <span style="color:var(--cat-intel)">Intel (2)</span> &bull; <span style="color:var(--cat-mcp)">MCP (5)</span> &bull; <span style="color:var(--cat-test)">Test (1)</span> &bull; <span style="color:var(--cat-rules)">Rules (1)</span> &bull; <span style="color:var(--cat-ref)">Ref (1)</span></div>
+    <div class="stat">Categories: ${catHtml}</div>
   `;
+  // Bind click on stat categories
+  document.querySelectorAll('.stat-cat').forEach(el => {
+    el.addEventListener('click', () => {
+      const cat = el.dataset.scat;
+      if (activeStatCat === cat) {
+        // Deselect — show all
+        activeStatCat = null;
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('hidden'));
+        resetHighlight();
+        network.setSelection({ nodes: [], edges: [] });
+        // Sync filter buttons to All
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.filter-btn[data-cat="all"]').classList.add('active');
+      } else {
+        // Select this category
+        activeStatCat = cat;
+        document.querySelectorAll('.card').forEach(c => {
+          c.classList.toggle('hidden', c.dataset.cat !== cat);
+        });
+        // Highlight matching nodes, dim others
+        const matchIds = SHEETS.filter(s => s.cat === cat).map(s => s.id);
+        const allNodes = nodesDS.get();
+        allNodes.forEach(n => { n.opacity = matchIds.includes(n.id) ? 1.0 : 0.15; });
+        nodesDS.update(allNodes);
+        network.selectNodes(matchIds);
+        // Sync filter buttons
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        const matchBtn = document.querySelector(`.filter-btn[data-cat="${cat}"]`);
+        if (matchBtn) matchBtn.classList.add('active');
+      }
+      updateStats();
+    });
+  });
 }
 updateStats();
 
