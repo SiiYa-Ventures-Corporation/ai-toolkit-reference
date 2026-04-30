@@ -256,6 +256,26 @@ const SHEETS = (typeof SHEET_DEFS_META !== 'undefined' ? SHEET_DEFS_META : [
 ]);
 
 
+// Original tool repos — GitHub link points here
+const REPO_URLS = {
+  1: 'https://github.com/anthropics/claude-code',
+  2: 'https://github.com/anthropics/claude-code',
+  3: 'https://github.com/anthropics/claude-code',
+  4: 'https://github.com/anthropics/claude-code',
+  5: 'https://github.com/anthropics/claude-code',
+  6: 'https://github.com/openai/codex',
+  7: 'https://github.com/nicholasgriffintn/gitnexus',
+  8: 'https://github.com/dmontagu/graphify',
+  9: 'https://github.com/anthropics/anthropic-quickstarts/tree/main/mcp-server-playwright',
+  10: 'https://github.com/coddingtonbear/obsidian-local-rest-api',
+  11: 'https://github.com/coddingtonbear/obsidian-local-rest-api',
+  12: 'https://github.com/obsidianmd/obsidian-api',
+  13: 'https://github.com/anthropics/anthropic-quickstarts',
+  14: 'https://github.com/anthropics/anthropic-quickstarts',
+  15: 'https://docs.windsurf.com',
+  16: ''
+};
+
 // Category icons
 const CAT_ICON = { agent:'\uD83E\uDD16', intel:'\uD83E\uDDE0', mcp:'\uD83D\uDD0C', test:'\uD83E\uDDEA', rules:'\uD83D\uDCCB', ref:'\uD83D\uDCDA' };
 
@@ -279,11 +299,39 @@ const TIPS = {
   16: 'Tip: Browse by category (NLP, Vision, RL) to find projects relevant to your pipeline.'
 };
 
+// Tooltip builder — returns a styled DOM element for clean wrapping
+function makeTooltip(s) {
+  const el = document.createElement('div');
+  el.style.cssText = 'max-width:260px;padding:10px 14px;font-family:Inter,sans-serif;font-size:12px;line-height:1.5;color:#e0e0f0;background:#1a1a2e;border:1px solid #2d2d50;border-radius:8px;white-space:normal;word-wrap:break-word;';
+  const name = document.createElement('div');
+  name.style.cssText = 'font-weight:700;font-size:13px;margin-bottom:4px;color:' + s.color + ';';
+  name.textContent = s.name;
+  el.appendChild(name);
+  const desc = document.createElement('div');
+  desc.style.cssText = 'color:#8888aa;margin-bottom:4px;';
+  desc.textContent = s.desc;
+  el.appendChild(desc);
+  const conn = document.createElement('div');
+  conn.style.cssText = 'color:#5c9cfc;font-size:11px;margin-bottom:6px;';
+  conn.textContent = s.links.length + ' connections';
+  el.appendChild(conn);
+  if (TIPS[s.id]) {
+    const hr = document.createElement('div');
+    hr.style.cssText = 'border-top:1px solid #2d2d50;margin:6px 0;';
+    el.appendChild(hr);
+    const tip = document.createElement('div');
+    tip.style.cssText = 'color:#5cfc9c;font-size:11px;';
+    tip.textContent = TIPS[s.id];
+    el.appendChild(tip);
+  }
+  return el;
+}
+
 // Build graph nodes with icons + tooltips + tips
 const nodesArr = SHEETS.map(s => ({
   id: s.id,
   label: (CAT_ICON[s.cat] || '') + ' ' + s.name,
-  title: '<b>' + s.name + '</b><br>' + s.desc + '<br><i>' + s.links.length + ' connections</i><br><br>' + (TIPS[s.id] || ''),
+  title: makeTooltip(s),
   color: { background: s.color, border: s.color, highlight: { background: '#fff', border: s.color }, hover: { background: s.color + 'cc', border: '#fff' } },
   font: { color: getComputedStyle(document.documentElement).getPropertyValue('--graph-font').trim() || '#e0e0f0', size: 13, face: 'Inter', strokeWidth: 3, strokeColor: getComputedStyle(document.documentElement).getPropertyValue('--graph-stroke').trim() || '#0f0f1a' },
   size: s.links.length > 4 ? 30 : s.links.length > 2 ? 24 : 18,
@@ -313,7 +361,7 @@ const edgesDS = new vis.DataSet(edgesArr);
 const container = document.getElementById('graph');
 const defaultOpts = {
   physics: { barnesHut: { gravitationalConstant: -3000, centralGravity: 0.4, springLength: 120, damping: 0.5 }, stabilization: { iterations: 200 } },
-  interaction: { hover: true, tooltipDelay: 200, navigationButtons: false, multiselect: false },
+  interaction: { hover: true, tooltipDelay: 200, navigationButtons: false, multiselect: false, tooltipDelay: 150 },
   layout: { improvedLayout: true }
 };
 let network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, defaultOpts);
@@ -408,8 +456,8 @@ SHEETS.forEach(s => {
       <span class="chevron">&#9654;</span>
     </div>
     <div class="card-meta">
-      <a class="file-link" href="${ghUrl}" target="_blank" title="Open source file">&#128196; ${s.file}.md</a>
-      <a class="gh-link" href="${ghUrl}" target="_blank" title="View on GitHub">&#9733; GitHub</a>
+      <a class="file-link" href="${ghUrl}" target="_blank" title="View cheat sheet source">&#128196; ${s.file}.md</a>
+      ${REPO_URLS[s.id] ? `<a class="gh-link" href="${REPO_URLS[s.id]}" target="_blank" title="Original tool repo">&#9733; Original Repo</a>` : ''}
       <span class="updated">Updated: ${s.updated}</span>
     </div>
     <div class="card-body">
@@ -479,29 +527,29 @@ function updateStats() {
     { key:'rules', label:'Rules', count:SHEETS.filter(s=>s.cat==='rules').length },
     { key:'ref', label:'Ref', count:SHEETS.filter(s=>s.cat==='ref').length }
   ];
+  const allActive = activeStatCat === null ? ' active-stat' : '';
+  const allHtml = `<span class="stat-cat${allActive}" style="color:var(--accent)" data-scat="all">All (${total})</span>`;
   const catHtml = cats.map(c => {
     const active = activeStatCat === c.key ? ' active-stat' : '';
     return `<span class="stat-cat${active}" style="color:var(--cat-${c.key})" data-scat="${c.key}">${c.label} (${c.count})</span>`;
   }).join(' &bull; ');
   document.getElementById('stats').innerHTML = `
     <div class="stat">Showing <span>${visible}</span> of <span>${total}</span> guides</div>
-    <div class="stat">Categories: ${catHtml}</div>
+    <div class="stat">Categories: ${allHtml} &bull; ${catHtml}</div>
   `;
   // Bind click on stat categories
   document.querySelectorAll('.stat-cat').forEach(el => {
     el.addEventListener('click', () => {
       const cat = el.dataset.scat;
-      if (activeStatCat === cat) {
-        // Deselect — show all
+      if (cat === 'all' || activeStatCat === cat) {
+        // Show all
         activeStatCat = null;
         document.querySelectorAll('.card').forEach(c => c.classList.remove('hidden'));
         resetHighlight();
         network.setSelection({ nodes: [], edges: [] });
-        // Sync filter buttons to All
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('.filter-btn[data-cat="all"]').classList.add('active');
       } else {
-        // Select this category
         activeStatCat = cat;
         document.querySelectorAll('.card').forEach(c => {
           c.classList.toggle('hidden', c.dataset.cat !== cat);
