@@ -213,10 +213,11 @@ code, pre { font-family:'JetBrains Mono',monospace; }
         <button onclick="graphZoomIn()" title="Zoom in">+</button>
         <button onclick="graphZoomOut()" title="Zoom out">&minus;</button>
         <div class="sep"></div>
-        <button onclick="togglePhysics(this)" title="Toggle physics simulation" class="active-ctrl" id="btnPhysics">Physics</button>
-        <button onclick="cycleLayout()" title="Switch graph layout" id="btnLayout">Layout</button>
-        <div class="sep"></div>
-        <button onclick="graphReset()" title="Reset to default view">Reset</button>
+        <button onclick="setLayout('physics')" title="Force-directed physics layout (default)" class="active-ctrl" id="btnPhysics">Physics</button>
+        <button onclick="setLayout('tree')" title="Hierarchical tree top-down" id="btnTree">Tree</button>
+        <button onclick="setLayout('radial')" title="Radial — hub nodes centered" id="btnRadial">Radial</button>
+        <button onclick="setLayout('circle')" title="Nodes arranged in a circle" id="btnCircle">Circle</button>
+        <button onclick="setLayout('grid')" title="Grid by category" id="btnGrid">Grid</button>
         <div class="sep"></div>
         <button onclick="exportPNG()" title="Download graph as PNG">PNG</button>
         <button onclick="toggleFullscreen()" title="Fullscreen graph" id="btnFullscreen">&#9974;</button>
@@ -580,9 +581,8 @@ function togglePanel(which) {
 }
 
 // === Graph Controls ===
-let physicsOn = true;
-let layoutMode = 0;
-const layouts = ['default', 'hierarchical-UD', 'hierarchical-LR', 'circular'];
+let currentLayout = 'physics';
+const layoutBtns = ['btnPhysics','btnTree','btnRadial','btnCircle','btnGrid'];
 
 function graphFit() {
   network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
@@ -598,60 +598,81 @@ function graphZoomOut() {
   network.moveTo({ scale: scale / 1.4, animation: { duration: 300 } });
 }
 
-function togglePhysics(btn) {
-  physicsOn = !physicsOn;
-  network.setOptions({ physics: { enabled: physicsOn } });
-  btn.classList.toggle('active-ctrl', physicsOn);
-  btn.title = physicsOn ? 'Disable physics' : 'Enable physics';
+function highlightLayoutBtn(name) {
+  layoutBtns.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active-ctrl', id === 'btn' + name.charAt(0).toUpperCase() + name.slice(1));
+  });
 }
 
-function cycleLayout() {
-  layoutMode = (layoutMode + 1) % layouts.length;
-  const mode = layouts[layoutMode];
-  const btn = document.getElementById('btnLayout');
-  if (mode === 'default') {
-    btn.textContent = 'Layout';
+function setLayout(name) {
+  // If clicking the already-active layout, reset to physics
+  if (name === currentLayout && name !== 'physics') {
+    name = 'physics';
+  }
+  currentLayout = name;
+  highlightLayoutBtn(name);
+
+  if (name === 'physics') {
+    rebuildNetwork();
+  } else if (name === 'tree') {
     rebuildNetwork({
-      ...defaultOpts,
-      physics: { ...defaultOpts.physics, enabled: physicsOn }
-    });
-  } else if (mode === 'hierarchical-UD') {
-    btn.textContent = 'Tree \u2193';
-    rebuildNetwork({
-      layout: { hierarchical: { enabled: true, direction: 'UD', sortMethod: 'hubsize', levelSeparation: 100 } },
-      physics: { enabled: physicsOn, hierarchicalRepulsion: { centralGravity: 0.3, springLength: 120 } },
+      layout: { hierarchical: { enabled: true, direction: 'UD', sortMethod: 'hubsize', levelSeparation: 100, nodeSpacing: 150 } },
+      physics: { enabled: true, hierarchicalRepulsion: { centralGravity: 0.2, springLength: 100, nodeSpacing: 120 } },
       interaction: defaultOpts.interaction
     });
-  } else if (mode === 'hierarchical-LR') {
-    btn.textContent = 'Tree \u2192';
-    rebuildNetwork({
-      layout: { hierarchical: { enabled: true, direction: 'LR', sortMethod: 'hubsize', levelSeparation: 150 } },
-      physics: { enabled: physicsOn, hierarchicalRepulsion: { centralGravity: 0.3, springLength: 120 } },
-      interaction: defaultOpts.interaction
-    });
-  } else if (mode === 'circular') {
-    btn.textContent = 'Circle';
+  } else if (name === 'radial') {
+    // Radial: most-connected node at center, others radiate out by distance
     rebuildNetwork({
       layout: { hierarchical: false },
       physics: { enabled: false },
       interaction: defaultOpts.interaction
     });
-    const r = 250;
+    const sorted = [...SHEETS].sort((a, b) => b.links.length - a.links.length);
+    const hubId = sorted[0].id;
+    network.moveNode(hubId, 0, 0);
+    // Ring 1: direct connections, Ring 2: everything else
+    const ring1 = sorted[0].links;
+    const ring2 = SHEETS.filter(s => s.id !== hubId && !ring1.includes(s.id)).map(s => s.id);
+    ring1.forEach((id, i) => {
+      const angle = (2 * Math.PI * i) / ring1.length - Math.PI / 2;
+      network.moveNode(id, 180 * Math.cos(angle), 180 * Math.sin(angle));
+    });
+    ring2.forEach((id, i) => {
+      const angle = (2 * Math.PI * i) / ring2.length - Math.PI / 2;
+      network.moveNode(id, 350 * Math.cos(angle), 350 * Math.sin(angle));
+    });
+    setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
+  } else if (name === 'circle') {
+    rebuildNetwork({
+      layout: { hierarchical: false },
+      physics: { enabled: false },
+      interaction: defaultOpts.interaction
+    });
+    const r = 280;
     SHEETS.forEach((s, i) => {
       const angle = (2 * Math.PI * i) / SHEETS.length - Math.PI / 2;
       network.moveNode(s.id, r * Math.cos(angle), r * Math.sin(angle));
     });
     setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
+  } else if (name === 'grid') {
+    // Grid: group by category, rows per category
+    rebuildNetwork({
+      layout: { hierarchical: false },
+      physics: { enabled: false },
+      interaction: defaultOpts.interaction
+    });
+    const catOrder = ['agent','intel','mcp','test','rules','ref'];
+    let y = 0;
+    catOrder.forEach(cat => {
+      const items = SHEETS.filter(s => s.cat === cat);
+      items.forEach((s, i) => {
+        network.moveNode(s.id, i * 200, y);
+      });
+      if (items.length > 0) y += 150;
+    });
+    setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
   }
-}
-
-function graphReset() {
-  layoutMode = 0;
-  physicsOn = true;
-  document.getElementById('btnPhysics').classList.add('active-ctrl');
-  document.getElementById('btnLayout').textContent = 'Layout';
-  rebuildNetwork();
-  resetHighlight();
 }
 
 // === Export as PNG ===
