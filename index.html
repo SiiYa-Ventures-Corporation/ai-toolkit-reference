@@ -71,7 +71,7 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 
 /* Layout */
 .layout { display:flex; height:calc(100vh - 130px); position:relative; }
-.graph-panel { width:40%; min-width:0; border-right:none; position:relative; display:flex; flex-direction:column; transition:width .3s ease, min-width .3s ease; }
+.graph-panel { width:75%; min-width:0; border-right:none; position:relative; display:flex; flex-direction:column; transition:width .3s ease, min-width .3s ease; }
 .graph-panel.collapsed { width:0 !important; min-width:0 !important; overflow:hidden; }
 .graph-panel .panel-top { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
 .graph-panel .label { font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
@@ -213,11 +213,11 @@ code, pre { font-family:'JetBrains Mono',monospace; }
         <button onclick="graphZoomIn()" title="Zoom in">+</button>
         <button onclick="graphZoomOut()" title="Zoom out">&minus;</button>
         <div class="sep"></div>
-        <button onclick="setLayout('physics')" title="Force-directed physics layout (default)" class="active-ctrl" id="btnPhysics">Physics</button>
+        <button onclick="setLayout('physics')" title="Force-directed physics layout (default)" id="btnPhysics">Physics</button>
         <button onclick="setLayout('tree')" title="Hierarchical tree top-down" id="btnTree">Tree</button>
         <button onclick="setLayout('radial')" title="Radial — hub nodes centered" id="btnRadial">Radial</button>
         <button onclick="setLayout('circle')" title="Nodes arranged in a circle" id="btnCircle">Circle</button>
-        <button onclick="setLayout('grid')" title="Grid by category" id="btnGrid">Grid</button>
+        <button onclick="setLayout('grid')" title="Grid by category" class="active-ctrl" id="btnGrid">Grid</button>
         <div class="sep"></div>
         <button onclick="exportPNG()" title="Download graph as PNG">PNG</button>
         <button onclick="toggleFullscreen()" title="Fullscreen graph" id="btnFullscreen">&#9974;</button>
@@ -364,10 +364,20 @@ const defaultOpts = {
   interaction: { hover: true, tooltipDelay: 200, navigationButtons: false, multiselect: false, tooltipDelay: 150 },
   layout: { improvedLayout: true }
 };
-let network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, defaultOpts);
-network.once('stabilizationIterationsDone', () => {
-  network.fit({ animation: { duration: 500 } });
+let network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, {
+  ...defaultOpts,
+  physics: { enabled: false },
+  layout: { hierarchical: false }
 });
+// Apply grid layout on initial load
+const catOrder0 = ['agent','intel','mcp','test','rules','ref'];
+let y0 = 0;
+catOrder0.forEach(cat => {
+  const items = SHEETS.filter(s => s.cat === cat);
+  items.forEach((s, i) => { network.moveNode(s.id, i * 200, y0); });
+  if (items.length > 0) y0 += 150;
+});
+setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
 
 function rebuildNetwork(opts) {
   network.destroy();
@@ -629,7 +639,7 @@ function togglePanel(which) {
 }
 
 // === Graph Controls ===
-let currentLayout = 'physics';
+let currentLayout = 'grid';
 const layoutBtns = ['btnPhysics','btnTree','btnRadial','btnCircle','btnGrid'];
 
 function graphFit() {
