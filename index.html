@@ -307,23 +307,40 @@ SHEETS.forEach(s => {
 const edgesDS = new vis.DataSet(edgesArr);
 
 const container = document.getElementById('graph');
-const network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, {
+const defaultOpts = {
   physics: { barnesHut: { gravitationalConstant: -3000, centralGravity: 0.4, springLength: 120, damping: 0.5 }, stabilization: { iterations: 200 } },
   interaction: { hover: true, tooltipDelay: 200, navigationButtons: false, multiselect: false },
   layout: { improvedLayout: true }
-});
+};
+let network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, defaultOpts);
 network.once('stabilizationIterationsDone', () => {
   network.fit({ animation: { duration: 500 } });
 });
 
+function rebuildNetwork(opts) {
+  network.destroy();
+  network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, opts || defaultOpts);
+  network.once('stabilizationIterationsDone', () => {
+    network.fit({ animation: { duration: 500 } });
+  });
+  bindNetworkEvents();
+}
+
 // === Neighbor highlight on hover ===
 let highlightActive = false;
-network.on('hoverNode', params => {
-  highlightNeighbors(params.node);
-});
-network.on('blurNode', () => {
-  resetHighlight();
-});
+function bindNetworkEvents() {
+  network.on('hoverNode', params => { highlightNeighbors(params.node); });
+  network.on('blurNode', () => { resetHighlight(); });
+  network.on('click', params => {
+    if (params.nodes.length) {
+      const id = params.nodes[0];
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('open'));
+      const card = document.querySelector(`.card[data-id="${id}"]`);
+      if (card) { card.classList.add('open'); card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+  });
+}
+bindNetworkEvents();
 
 function highlightNeighbors(nodeId) {
   const connNodes = network.getConnectedNodes(nodeId);
@@ -402,18 +419,6 @@ SHEETS.forEach(s => {
   cardsEl.appendChild(card);
 });
 
-// Graph click -> open card
-network.on('click', params => {
-  if (params.nodes.length) {
-    const id = params.nodes[0];
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('open'));
-    const card = document.querySelector(`.card[data-id="${id}"]`);
-    if (card) {
-      card.classList.add('open');
-      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-});
 
 // Search — syncs cards AND graph
 document.getElementById('search').addEventListener('input', e => {
@@ -555,36 +560,40 @@ function cycleLayout() {
   layoutMode = (layoutMode + 1) % layouts.length;
   const mode = layouts[layoutMode];
   const btn = document.getElementById('btnLayout');
-  let opts;
   if (mode === 'default') {
-    opts = { layout: { hierarchical: false }, physics: { enabled: physicsOn, barnesHut: { gravitationalConstant: -3000, centralGravity: 0.4, springLength: 120, damping: 0.5 } } };
     btn.textContent = 'Layout';
+    rebuildNetwork({
+      ...defaultOpts,
+      physics: { ...defaultOpts.physics, enabled: physicsOn }
+    });
   } else if (mode === 'hierarchical-UD') {
-    opts = { layout: { hierarchical: { enabled: true, direction: 'UD', sortMethod: 'hubsize', levelSeparation: 100 } }, physics: { enabled: physicsOn, hierarchicalRepulsion: { centralGravity: 0.3, springLength: 120 } } };
     btn.textContent = 'Tree \u2193';
+    rebuildNetwork({
+      layout: { hierarchical: { enabled: true, direction: 'UD', sortMethod: 'hubsize', levelSeparation: 100 } },
+      physics: { enabled: physicsOn, hierarchicalRepulsion: { centralGravity: 0.3, springLength: 120 } },
+      interaction: defaultOpts.interaction
+    });
   } else if (mode === 'hierarchical-LR') {
-    opts = { layout: { hierarchical: { enabled: true, direction: 'LR', sortMethod: 'hubsize', levelSeparation: 150 } }, physics: { enabled: physicsOn, hierarchicalRepulsion: { centralGravity: 0.3, springLength: 120 } } };
     btn.textContent = 'Tree \u2192';
+    rebuildNetwork({
+      layout: { hierarchical: { enabled: true, direction: 'LR', sortMethod: 'hubsize', levelSeparation: 150 } },
+      physics: { enabled: physicsOn, hierarchicalRepulsion: { centralGravity: 0.3, springLength: 120 } },
+      interaction: defaultOpts.interaction
+    });
   } else if (mode === 'circular') {
-    opts = { layout: { hierarchical: false }, physics: { enabled: false } };
-    // Position nodes in a circle
-    const r = 250;
-    const n = SHEETS.length;
-    const positions = {};
-    SHEETS.forEach((s, i) => {
-      const angle = (2 * Math.PI * i) / n - Math.PI / 2;
-      positions[s.id] = { x: r * Math.cos(angle), y: r * Math.sin(angle) };
-    });
-    network.setOptions(opts);
-    Object.keys(positions).forEach(id => {
-      network.moveNode(parseInt(id), positions[id].x, positions[id].y);
-    });
     btn.textContent = 'Circle';
+    rebuildNetwork({
+      layout: { hierarchical: false },
+      physics: { enabled: false },
+      interaction: defaultOpts.interaction
+    });
+    const r = 250;
+    SHEETS.forEach((s, i) => {
+      const angle = (2 * Math.PI * i) / SHEETS.length - Math.PI / 2;
+      network.moveNode(s.id, r * Math.cos(angle), r * Math.sin(angle));
+    });
     setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
-    return;
   }
-  network.setOptions(opts);
-  setTimeout(() => network.fit({ animation: { duration: 500 } }), 500);
 }
 
 function graphReset() {
@@ -592,12 +601,8 @@ function graphReset() {
   physicsOn = true;
   document.getElementById('btnPhysics').classList.add('active-ctrl');
   document.getElementById('btnLayout').textContent = 'Layout';
-  network.setOptions({
-    layout: { hierarchical: false },
-    physics: { enabled: true, barnesHut: { gravitationalConstant: -3000, centralGravity: 0.4, springLength: 120, damping: 0.5 }, stabilization: { iterations: 200 } }
-  });
+  rebuildNetwork();
   resetHighlight();
-  setTimeout(() => network.fit({ animation: { duration: 500 } }), 600);
 }
 
 // === Export as PNG ===
