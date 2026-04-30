@@ -1,11 +1,12 @@
 # AI Toolkit Reference
 
 > Interactive visual reference for AI coding tools, agents, and MCP configurations.
+> Zero frameworks. Zero npm dependencies. Just open `index.html`.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub Pages](https://img.shields.io/badge/Live-GitHub%20Pages-brightgreen)](https://siiya-ventures-corporation.github.io/ai-toolkit-reference/)
-
-![AI Toolkit Reference Screenshot](https://img.shields.io/badge/Guides-16-purple) ![Categories](https://img.shields.io/badge/Categories-6-orange)
+![Guides](https://img.shields.io/badge/Guides-16-purple)
+![Categories](https://img.shields.io/badge/Categories-6-orange)
 
 ---
 
@@ -13,140 +14,292 @@
 
 A single-page interactive reference for 16 AI development tools and configurations. Built for developers working with AI coding agents like Claude Code, Codex, Windsurf, and the Model Context Protocol (MCP) ecosystem.
 
-**No frameworks. No build tools. Just open `index.html`.**
-
-### Features
-
-- **Interactive Graph** — Visual relationship map between all tools (vis-network)
-- **Searchable Cards** — Full-text search across all content
-- **Category Filters** — AI Agents, Code Intel, MCP, Testing, Rules, Reference
-- **Click Graph Nodes** — Jump to that tool's reference card
-- **GitHub Links** — Each card links to the source markdown
-- **Auto-Updated** — GitHub Actions rebuilds when guides change
-- **Dark Theme** — Modern UI with Inter + JetBrains Mono
+**No frameworks. No build tools. Just open `index.html` in any browser.**
 
 ---
 
-## Live Page
+## Features
 
-After enabling GitHub Pages:
+### Graph Visualization
+- **Interactive relationship graph** — drag, zoom, pan nodes
+- **Neighbor highlighting** — hover a node to dim unrelated tools
+- **Hover tooltips** — each node shows description, connections, and a learning tip
+- **Category emoji icons** — nodes display icons (🤖 🧠 🔌 🧪 📋 📚)
+- **Weighted edges** — stronger relationships = thicker lines
+- **Animated edge pulses** — purple dots flow along connections
+- **4 layout modes** — Force-directed, Tree ↓, Tree →, Circle
+- **Physics toggle** — freeze nodes in place, drag to arrange manually
+- **Fullscreen mode** — expand graph to fill the screen (ESC to exit)
+- **PNG export** — download the current graph view as an image
 
-```
-https://siiya-ventures-corporation.github.io/ai-toolkit-reference/
-```
+### Cards & Search
+- **Expandable cards** — click to reveal full markdown content
+- **Full-text search** — filters cards AND highlights matching graph nodes
+- **Category filters** — AI Agents, Code Intel, MCP, Testing, Rules, Reference
+- **Click graph nodes** — jump to that tool's reference card
+- **GitHub links** — each card links directly to the source `.md` file on GitHub
+- **Updated dates** — shows last-modified date per guide
+
+### UI
+- **Dark / Light theme toggle** — click ☀ in the header
+- **Resizable panels** — drag the center bar to resize graph vs cards
+- **Collapsible panels** — arrow buttons to hide graph or cards
+- **Responsive** — works on desktop and mobile
 
 ---
 
 ## Quick Start
 
-### Just open it
 ```bash
-# Clone
+# Clone the repo
 git clone https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference.git
+cd ai-toolkit-reference
 
-# Open in browser
-open index.html
+# Option 1: Just open it
+open index.html          # macOS
+start index.html         # Windows
+xdg-open index.html      # Linux
+
+# Option 2: Local dev server
+npx -y http-server -p 8888
 ```
 
-### Local server
+No install required. Internet needed on first load for CDN scripts (vis-network, marked.js, Google Fonts).
+
+---
+
+## Project Structure
+
+```
+ai-toolkit-reference/
+├── index.html                    # Interactive UI (all features, self-contained)
+├── data.js                       # Auto-generated content (DO NOT edit manually)
+├── build.js                      # Build script: reads guides/*.md → generates data.js
+├── guides/                       # Source markdown files (EDIT THESE)
+│   ├── Everything-Claude-Code.md
+│   ├── Claude-Code-Plugins.md
+│   ├── Claude-Code-Skills.md
+│   ├── Claude-Code-Agents.md
+│   ├── Claude-Mem.md
+│   ├── Codex-CLI.md
+│   ├── GitNexus.md
+│   ├── Graphify.md
+│   ├── Playwright-MCP.md
+│   ├── Obsidian-MCP.md
+│   ├── Obsidian-API-Reader.md
+│   ├── Sync-To-Obsidian.md
+│   ├── MCP-Scripts.md
+│   ├── MCP-Tool-Configs.md
+│   ├── Windsurf-Rules.md
+│   └── 500-AI-Projects-Reference.md
+├── .github/workflows/
+│   └── update-ui.yml             # Auto-rebuilds on push to guides/
+├── README.md
+└── LICENSE
+```
+
+### What each file does
+
+| File | Role | Edit? |
+|------|------|-------|
+| `guides/*.md` | Source content — one file per tool | **Yes** — this is where you add/edit content |
+| `build.js` | Reads all `guides/*.md`, extracts content, gets git dates, writes `data.js` | **Yes** — add new guide entries here |
+| `index.html` | The entire UI — graph, cards, search, filters, theme, all features | **Yes** — to add categories, tips, or UI changes |
+| `data.js` | Auto-generated by `build.js` — contains all markdown content + metadata | **No** — this file is overwritten on every build |
+| `update-ui.yml` | GitHub Actions workflow — triggers build + deploy on push | Rarely |
+
+---
+
+## How to Add a New Guide
+
+### Step 1: Create the markdown file
+
+Create `guides/My-New-Tool.md` with your content. Use standard markdown:
+
+```markdown
+# My New Tool
+
+**Category:** AI Agent | Version: 1.0
+
+## Overview
+
+Description of the tool...
+
+## Installation
+
+Steps to install...
+
+## Commands
+
+| Command | What It Does |
+|---------|-------------|
+| `/run`  | Runs the tool |
+
+## Tips
+
+- Tip 1
+- Tip 2
+```
+
+### Step 2: Register it in `build.js`
+
+Open `build.js` and add an entry to the `SHEET_DEFS` array:
+
+```js
+{
+  id: 17,                          // Next available ID
+  name: "My New Tool",             // Display name
+  file: "My-New-Tool",             // Filename WITHOUT .md
+  cat: "agent",                    // Category key (see table below)
+  catLabel: "AI Agent",            // Category display label
+  color: "#fc5c7c",                // Node color (hex)
+  desc: "Short one-line summary",  // Shows in card header + tooltip
+  links: [1, 7]                    // IDs of related tools (creates graph edges)
+}
+```
+
+### Step 3: Add a learning tip in `index.html` (optional)
+
+Open `index.html` and find the `TIPS` object. Add a tip for your new tool:
+
+```js
+const TIPS = {
+  // ... existing tips ...
+  17: 'Tip: Quick actionable hint about using this tool effectively.'
+};
+```
+
+This shows when users hover over the node in the graph.
+
+### Step 4: Build and push
+
 ```bash
-npx http-server -p 8888
+node build.js        # Regenerates data.js with your new guide
+git add -A
+git commit -m "feat: add My New Tool guide"
+git push origin main
 ```
+
+GitHub Actions will auto-deploy. If you're running locally, just refresh the browser.
 
 ---
 
-## What's Included
+## Available Categories
 
-### 16 Reference Guides
+| Key | Label | Color | Hex |
+|-----|-------|-------|-----|
+| `agent` | AI Agent | Red | `#fc5c7c` |
+| `intel` | Code Intel | Orange | `#fcac5c` |
+| `mcp` | MCP | Green | `#5cfc9c` |
+| `test` | Testing | Purple | `#7c5cfc` |
+| `rules` | Rules | Teal | `#5cfcdc` |
+| `ref` | Reference | Yellow | `#fcdc5c` |
 
-| # | Guide | Category | What It Covers |
-|---|-------|----------|---------------|
-| 1 | Everything Claude Code | AI Agent | 36 agents, 80+ skills, 30+ commands, hooks, rules |
-| 2 | Claude Code Plugins | AI Agent | Plugin install, update, MCP server configs |
-| 3 | Claude Code Skills | AI Agent | Custom skills, GitNexus skills, cluster-based skills |
-| 4 | Claude Code Agents | AI Agent | 7 AI roles with permissions and boundaries |
-| 5 | Claude-Mem | AI Agent | Persistent memory via SQLite + ChromaDB |
-| 6 | Codex CLI | AI Agent | Adversarial reviewer, FIA constraints |
-| 7 | GitNexus | Code Intel | Code knowledge graph, impact analysis, MCP tools |
-| 8 | Graphify | Code Intel | Knowledge graph generator from any input |
-| 9 | Playwright MCP | Testing | Browser automation via MCP |
-| 10 | Obsidian MCP | MCP | Vault bridge for AI tools |
-| 11 | Obsidian API Reader | MCP | Direct PowerShell/batch REST access |
-| 12 | Sync-To-Obsidian | MCP | Project-to-vault sync with routing rules |
-| 13 | MCP Scripts | MCP | 7 launcher scripts for MCP server |
-| 14 | MCP Tool Configs | MCP | Per-tool JSON configs for 5 AI tools |
-| 15 | Windsurf Rules | Rules | Terminal raw mode, role boundaries |
-| 16 | 500 AI Projects | Reference | ML/DL project ideas mapped to use cases |
+### Adding a new category
 
-### 6 Categories
-
-| Category | Color | Count |
-|----------|-------|-------|
-| AI Agents | Red | 6 |
-| Code Intel | Orange | 2 |
-| MCP & Obsidian | Green | 5 |
-| Testing | Purple | 1 |
-| Rules | Teal | 1 |
-| Reference | Yellow | 1 |
+1. Pick a key, label, and color
+2. Add a CSS variable in `index.html`: `--cat-mycat: #hexcolor;`
+3. Add a filter button in the HTML: `<button class="filter-btn" data-cat="mycat">My Category</button>`
+4. Add the `.active` style: `.filter-btn[data-cat="mycat"].active { background:var(--cat-mycat); }`
+5. Use the key in your `SHEET_DEFS` entry
 
 ---
 
-## How It Works
+## Auto-Update Flow (GitHub Actions)
+
+When you push changes to any `guides/*.md` file on `main`:
 
 ```
-guides/*.md      <- Source markdown files (edit these)
-build.js         <- Reads markdown, generates data.js
-data.js          <- Auto-generated content for the UI
-index.html       <- Interactive single-page UI
+Push to main
+  └─▶ GitHub Actions triggers
+       └─▶ Runs: node build.js
+            └─▶ Reads all guides/*.md
+            └─▶ Extracts markdown content
+            └─▶ Gets last-modified dates from git
+            └─▶ Writes data.js
+       └─▶ Commits updated data.js
+       └─▶ Deploys to GitHub Pages
 ```
 
-### Auto-Update Flow
-
-1. Edit any `.md` file in `guides/`
-2. Push to `main`
-3. GitHub Actions runs `build.js`
-4. `data.js` regenerated with new content + git dates
-5. Committed automatically
-6. GitHub Pages deploys
+The whole process takes ~30 seconds.
 
 ---
 
-## Add Your Own Guide
+## Contributing
 
-1. Create `guides/My-Tool.md` with your content
-2. Add an entry to `SHEET_DEFS` in `build.js`:
-   ```js
-   { id: 17, name: "My Tool", file: "My-Tool",
-     cat: "agent", catLabel: "AI Agent", color: "#fc5c7c",
-     desc: "Short description", links: [1, 2] }
-   ```
-3. Run `node build.js`
-4. Commit and push
+We welcome contributions! Here's how:
+
+### Quick contributions (edit on GitHub)
+1. Navigate to any file in `guides/`
+2. Click the pencil icon to edit
+3. Make your changes
+4. Submit a Pull Request
+
+### Full contributions (local)
+```bash
+# Fork the repo on GitHub, then:
+git clone https://github.com/YOUR-USERNAME/ai-toolkit-reference.git
+cd ai-toolkit-reference
+
+# Create a branch
+git checkout -b add-my-tool
+
+# Add your guide (see "How to Add a New Guide" above)
+# ...
+
+# Build locally to verify
+node build.js
+# Open index.html in browser to check
+
+# Commit and push
+git add -A
+git commit -m "feat: add My Tool guide"
+git push origin add-my-tool
+
+# Open a Pull Request on GitHub
+```
+
+### What you can contribute
+- **New guides** — Add reference docs for any AI tool, MCP server, or workflow
+- **Fix existing content** — Correct errors, add missing commands, update versions
+- **Add learning tips** — Add hover tips in `index.html` for existing tools
+- **New categories** — Propose new tool categories with colors
+- **UI improvements** — Enhance the interactive features
+- **Translations** — Translate guides to other languages
+
+### Guidelines
+- One guide per `.md` file in `guides/`
+- Keep descriptions concise — this is a reference, not a tutorial
+- Use tables for commands and configs
+- Link related tools via the `links` array in `build.js`
+- Test locally with `node build.js` + open `index.html` before submitting
 
 ---
 
 ## Fork & Customize
 
-This is designed to be forked. You can:
+This project is designed to be forked and made your own. You can:
 
 - **Replace all guides** with your own tool references
-- **Change categories** by editing `SHEET_DEFS` colors and labels
-- **Customize the theme** by editing CSS variables in `index.html`
-- **Add new categories** by adding `data-cat` values to filter buttons
+- **Change categories** — edit colors, labels, and filter buttons
+- **Customize the theme** — edit CSS variables in `index.html`
+- **Rebrand** — change the header title and links
+- **Add your own tools** — the system is completely generic
 
 ---
 
 ## Tech Stack
 
-| Component | Library |
-|-----------|---------|
-| Graph visualization | [vis-network](https://visjs.github.io/vis-network/) |
-| Markdown rendering | [marked.js](https://marked.js.org/) |
-| Fonts | [Inter](https://fonts.google.com/specimen/Inter) + [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) |
-| Build | Node.js (vanilla, zero dependencies) |
-| Deploy | GitHub Actions + GitHub Pages |
+| Component | Library | CDN |
+|-----------|---------|-----|
+| Graph visualization | [vis-network 9.1.6](https://visjs.github.io/vis-network/) | unpkg.com |
+| Markdown rendering | [marked.js](https://marked.js.org/) | cdn.jsdelivr.net |
+| Fonts | [Inter](https://fonts.google.com/specimen/Inter) + [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) | Google Fonts |
+| Build | Node.js (vanilla, zero deps) | — |
+| CI/CD | GitHub Actions | — |
+| Hosting | GitHub Pages | — |
 
-**Zero npm dependencies. Zero frameworks. Pure HTML + JS.**
+**Zero npm dependencies. Zero frameworks. Pure HTML + vanilla JS.**
 
 ---
 
