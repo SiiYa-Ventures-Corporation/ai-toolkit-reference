@@ -1,0 +1,54 @@
+name: Sync Watchdog
+
+on:
+  schedule:
+    # Mon and Thu at 13:00 UTC (08:00 America/Chicago, 6 hours after the local 02:00 sync)
+    - cron: '0 13 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Verify heartbeat tag freshness
+        env:
+          TAG: last-local-sync
+          MAX_AGE_HOURS: "24"
+        run: |
+          set -euo pipefail
+
+          if ! git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::error title=Heartbeat tag missing::Tag '${TAG}' does not exist on origin. The local 'SiiYa GitHub Sync' Windows task has never published a successful run."
+            exit 1
+          fi
+
+          # Annotated tag timestamp (taggerdate). Falls back to commit time if lightweight.
+          TAG_TS=$(git for-each-ref --format='%(taggerdate:unix)' "refs/tags/${TAG}")
+          if [ -z "${TAG_TS}" ]; then
+            TAG_TS=$(git log -1 --format=%ct "refs/tags/${TAG}")
+          fi
+
+          NOW_TS=$(date -u +%s)
+          AGE_SECS=$((NOW_TS - TAG_TS))
+          AGE_HOURS=$((AGE_SECS / 3600))
+          MAX_SECS=$((MAX_AGE_HOURS * 3600))
+
+          echo "Tag '${TAG}' last updated: $(date -u -d @${TAG_TS} '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Now:                       $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Age: ${AGE_HOURS}h (threshold: ${MAX_AGE_HOURS}h)"
+
+          if [ "${AGE_SECS}" -gt "${MAX_SECS}" ]; then
+            echo "::error title=Local sync stale::Heartbeat is ${AGE_HOURS}h old (>${MAX_AGE_HOURS}h). The local 'SiiYa GitHub Sync' Windows scheduled task did not run successfully at the last expected slot. Check C:\\Projects\\github\\sync-github.log."
+            exit 1
+          fi
+
+          echo "Heartbeat OK."
