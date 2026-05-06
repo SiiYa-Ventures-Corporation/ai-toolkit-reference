@@ -30,6 +30,7 @@
   --cat-test: #7c5cfc;
   --cat-rules: #5cfcdc;
   --cat-ref: #fcdc5c;
+  --cat-creative: #fc5ce8;
   --graph-font: #e0e0f0;
   --graph-stroke: #0f0f1a;
   --graph-edge: #2d2d50;
@@ -68,6 +69,7 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .filter-btn[data-cat="test"].active { background:var(--cat-test); border-color:var(--cat-test); }
 .filter-btn[data-cat="rules"].active { background:var(--cat-rules); border-color:var(--cat-rules); color:#000; }
 .filter-btn[data-cat="ref"].active { background:var(--cat-ref); border-color:var(--cat-ref); color:#000; }
+.filter-btn[data-cat="creative"].active { background:var(--cat-creative); border-color:var(--cat-creative); color:#fff; }
 
 /* Layout */
 .layout { display:flex; height:calc(100vh - 130px); position:relative; }
@@ -163,19 +165,6 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .stat-cat:hover { border-color:currentColor; opacity:.9; }
 .stat-cat.active-stat { border-color:currentColor; background:rgba(255,255,255,.08); }
 
-/* About modal */
-.about-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
-.about-overlay.open { display:flex; }
-.about-modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; max-width:680px; width:90%; max-height:85vh; overflow-y:auto; padding:40px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.5); }
-.about-modal h2 { color:var(--accent); font-size:22px; margin:0 0 16px; }
-.about-modal h3 { color:var(--accent2); font-size:16px; margin:24px 0 12px; }
-.about-modal p { color:var(--text); font-size:14px; line-height:1.7; margin:0 0 12px; }
-.about-modal ul { color:var(--text); font-size:14px; line-height:1.8; margin:0 0 12px; padding-left:20px; }
-.about-modal .close-about { position:absolute; top:16px; right:20px; background:none; border:none; color:var(--text-dim); font-size:24px; cursor:pointer; padding:4px 10px; border-radius:6px; }
-.about-modal .close-about:hover { background:rgba(255,255,255,.1); color:var(--text); }
-.about-modal .founder-section { margin-top:24px; padding-top:24px; border-top:1px solid var(--border); }
-.about-modal .tag { display:inline-block; font-size:11px; padding:3px 10px; border-radius:12px; background:var(--accent)22; color:var(--accent); border:1px solid var(--accent)44; margin-right:6px; margin-bottom:6px; }
-
 /* Edge animation canvas overlay */
 .edge-anim-canvas { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
 
@@ -195,54 +184,12 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 <div class="header">
   <div>
     <h1>AI Toolkit Reference</h1>
-    <div class="meta">16 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
+    <div class="meta">17 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
   </div>
   <div class="header-links">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light theme">&#9788;</button>
-    <button onclick="document.getElementById('aboutModal').classList.add('open')" style="font-size:12px;padding:6px 14px;border-radius:8px;background:rgba(124,92,252,.12);border:1px solid rgba(124,92,252,.3);color:#7c5cfc;cursor:pointer;font-weight:500;">About</button>
     <a class="oss-badge" href="https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference" target="_blank">&#9733; Open Source</a>
     <a class="gh-repo" href="https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference" target="_blank">&#128193; Repo</a>
-  </div>
-</div>
-
-<div class="about-overlay" id="aboutModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="about-modal">
-    <button class="close-about" onclick="document.getElementById('aboutModal').classList.remove('open')">&times;</button>
-    <h2>About Tri-Lens</h2>
-    <p>Tri-Lens is a trust intelligence framework built to bring structure, accountability, and measurable credibility to modern information systems.</p>
-    <p>The project originated from a simple but urgent problem: the internet has no consistent way to evaluate the reliability of what we read. Existing signals—likes, shares, domain reputation—are fragmented, easily manipulated, and lack transparency. As a result, high-quality reporting and low-quality noise are often indistinguishable at scale.</p>
-    <p>Tri-Lens introduces a deterministic scoring model designed to change that.</p>
-    <h3>The Tri-Score</h3>
-    <p>At its core is the Tri-Score, a weighted evaluation across three dimensions:</p>
-    <ul>
-      <li><strong>Source Authority (L1)</strong> — who is publishing</li>
-      <li><strong>Story Confidence (L2)</strong> — how well the narrative is corroborated</li>
-      <li><strong>Content Integrity (L3)</strong> — whether the content itself holds up under scrutiny</li>
-    </ul>
-    <p>These signals are combined into a single, auditable score that can be used across platforms, APIs, and downstream systems.</p>
-    <p>The Tri-Lens scoring engine is part of a <strong>patent-pending architecture</strong>, designed to standardize how trust is computed, verified, and operationalized across distributed systems.</p>
-    <h3>What Makes Tri-Lens Different</h3>
-    <ul>
-      <li>Determinism over heuristics</li>
-      <li>Auditability over black-box scoring</li>
-      <li>Verifiable scoring infrastructure backed by patent-pending methodology</li>
-      <li>Infrastructure-first design for real-world deployment</li>
-    </ul>
-    <p>This repository exists as a reference layer—tools, patterns, and implementation guidance—for teams looking to integrate trust scoring into their own systems.</p>
-    <p>Tri-Lens is part of a broader effort to rebuild trust in digital information—starting at the infrastructure level.</p>
-    <div class="founder-section">
-      <h3>About the Founder</h3>
-      <p><strong>Allie Gentry</strong> is the Founder and CEO of SiiYa Ventures Corporation and the creator of the Tri-Lens Intelligence Platform.</p>
-      <p>She leads the development of a patent-pending trust scoring system designed to bring consistency and accountability to how information credibility is measured at scale.</p>
-      <p>With a background in systems design and product architecture, Allie focuses on building infrastructure that is not only scalable, but auditable, deterministic, and defensible in high-stakes environments.</p>
-      <p>Through SiiYa Ventures, she is advancing a new category of technology centered on trust, verification, and signal integrity—laying the foundation for more reliable information ecosystems.</p>
-    </div>
-    <div style="margin-top:20px;">
-      <span class="tag">Patent Pending</span>
-      <span class="tag">Trust Intelligence</span>
-      <span class="tag">Deterministic Scoring</span>
-      <span class="tag">Infrastructure</span>
-    </div>
   </div>
 </div>
 
@@ -255,6 +202,7 @@ code, pre { font-family:'JetBrains Mono',monospace; }
   <button class="filter-btn" data-cat="test">Testing</button>
   <button class="filter-btn" data-cat="rules">Rules</button>
   <button class="filter-btn" data-cat="ref">Reference</button>
+  <button class="filter-btn" data-cat="creative">Creative</button>
 </div>
 
 <div class="stats" id="stats"></div>
@@ -307,7 +255,8 @@ const SHEETS = (typeof SHEET_DEFS_META !== 'undefined' ? SHEET_DEFS_META : [
   {id:13,name:"MCP Scripts",file:"MCP-Scripts",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"7 launcher scripts — HTTP, stdio, clean restart",links:[14,10,11,12],updated:"Apr 29, 2026"},
   {id:14,name:"MCP Tool Configs",file:"MCP-Tool-Configs",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"Per-tool JSON configs — Windsurf, Claude, ChatGPT, Codex",links:[13,10,2,1,6],updated:"Apr 29, 2026"},
   {id:15,name:"Windsurf Rules",file:"Windsurf-Rules",cat:"rules",catLabel:"Rules",color:"#5cfcdc",desc:"Terminal raw mode, frontend-only boundaries",links:[4,9,1],updated:"Apr 29, 2026"},
-  {id:16,name:"500 AI Projects Reference",file:"500-AI-Projects-Reference",cat:"ref",catLabel:"Reference",color:"#fcdc5c",desc:"500+ ML/DL projects mapped to Tri-Lens",links:[],updated:"Apr 29, 2026"}
+  {id:16,name:"500 AI Projects Reference",file:"500-AI-Projects-Reference",cat:"ref",catLabel:"Reference",color:"#fcdc5c",desc:"500+ ML/DL projects mapped to Tri-Lens",links:[],updated:"Apr 29, 2026"},
+  {id:17,name:"Arcads AI Video",file:"Arcads-AI-Video",cat:"creative",catLabel:"Creative",color:"#fc5ce8",desc:"AI video & image generation — Sora 2, Veo 3.1, Kling 3.0, Nano Banana",links:[1,2],updated:"May 6, 2026"}
 ]);
 
 
@@ -328,11 +277,12 @@ const REPO_URLS = {
   13: 'https://github.com/anthropics/anthropic-quickstarts',
   14: 'https://github.com/anthropics/anthropic-quickstarts',
   15: 'https://docs.windsurf.com',
-  16: ''
+  16: '',
+  17: 'https://github.com/krusemediallc/arcads-claude-code'
 };
 
 // Category icons
-const CAT_ICON = { agent:'\uD83E\uDD16', intel:'\uD83E\uDDE0', mcp:'\uD83D\uDD0C', test:'\uD83E\uDDEA', rules:'\uD83D\uDCCB', ref:'\uD83D\uDCDA' };
+const CAT_ICON = { agent:'\uD83E\uDD16', intel:'\uD83E\uDDE0', mcp:'\uD83D\uDD0C', test:'\uD83E\uDDEA', rules:'\uD83D\uDCCB', ref:'\uD83D\uDCDA', creative:'\uD83C\uDFA8' };
 
 // Per-tool learning tips shown on hover
 const TIPS = {
@@ -351,7 +301,8 @@ const TIPS = {
   13: 'Tip: Run start-mcp-server-http.bat for HTTP transport. Use stdio for Claude Desktop.',
   14: 'Tip: Each AI tool needs its own JSON config. Check mcp_config/ for per-tool files.',
   15: 'Tip: terminal_raw.md forces raw output mode. Windsurf is frontend-only in Tri-Lens.',
-  16: 'Tip: Browse by category (NLP, Vision, RL) to find projects relevant to your pipeline.'
+  16: 'Tip: Browse by category (NLP, Vision, RL) to find projects relevant to your pipeline.',
+  17: 'Tip: Drop product photos in references/products/ and the agent uses them automatically.'
 };
 
 // Tooltip builder — returns a styled DOM element for clean wrapping
@@ -425,7 +376,7 @@ let network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, {
   layout: { hierarchical: false }
 });
 // Apply grid layout on initial load
-const catOrder0 = ['agent','intel','mcp','test','rules','ref'];
+const catOrder0 = ['agent','intel','mcp','test','rules','ref','creative'];
 let y0 = 0;
 catOrder0.forEach(cat => {
   const items = SHEETS.filter(s => s.cat === cat);
@@ -590,7 +541,8 @@ function updateStats() {
     { key:'mcp', label:'MCP', count:SHEETS.filter(s=>s.cat==='mcp').length },
     { key:'test', label:'Test', count:SHEETS.filter(s=>s.cat==='test').length },
     { key:'rules', label:'Rules', count:SHEETS.filter(s=>s.cat==='rules').length },
-    { key:'ref', label:'Ref', count:SHEETS.filter(s=>s.cat==='ref').length }
+    { key:'ref', label:'Ref', count:SHEETS.filter(s=>s.cat==='ref').length },
+    { key:'creative', label:'Creative', count:SHEETS.filter(s=>s.cat==='creative').length }
   ];
   const allActive = activeStatCat === null ? ' active-stat' : '';
   const allHtml = `<span class="stat-cat${allActive}" style="color:var(--accent)" data-scat="all">All (${total})</span>`;
