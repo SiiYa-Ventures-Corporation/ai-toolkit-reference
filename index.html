@@ -9,7 +9,7 @@
 <script src="data.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
+:root, [data-theme="dark"] {
   --bg: #0f0f1a;
   --surface: #1a1a2e;
   --surface2: #232340;
@@ -30,6 +30,23 @@
   --cat-test: #7c5cfc;
   --cat-rules: #5cfcdc;
   --cat-ref: #fcdc5c;
+  --cat-creative: #fc5ce8;
+  --graph-font: #e0e0f0;
+  --graph-stroke: #0f0f1a;
+  --graph-edge: #2d2d50;
+}
+[data-theme="light"] {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface2: #ebedf0;
+  --border: #d0d5dd;
+  --text: #1a1a2e;
+  --text-dim: #5a5f7a;
+  --accent: #6c4cec;
+  --accent2: #3a7ce0;
+  --graph-font: #1a1a2e;
+  --graph-stroke: #ffffff;
+  --graph-edge: #c0c4d0;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
@@ -52,13 +69,46 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .filter-btn[data-cat="test"].active { background:var(--cat-test); border-color:var(--cat-test); }
 .filter-btn[data-cat="rules"].active { background:var(--cat-rules); border-color:var(--cat-rules); color:#000; }
 .filter-btn[data-cat="ref"].active { background:var(--cat-ref); border-color:var(--cat-ref); color:#000; }
+.filter-btn[data-cat="creative"].active { background:var(--cat-creative); border-color:var(--cat-creative); color:#fff; }
 
 /* Layout */
-.layout { display:flex; height:calc(100vh - 130px); }
-.graph-panel { width:40%; border-right:1px solid var(--border); position:relative; }
-.graph-panel .label { position:absolute; top:12px; left:16px; font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; z-index:10; }
-#graph { width:100%; height:100%; }
-.cards-panel { width:60%; overflow-y:auto; padding:20px; }
+.layout { display:flex; height:calc(100vh - 130px); position:relative; }
+.graph-panel { width:75%; min-width:0; border-right:none; position:relative; display:flex; flex-direction:column; transition:width .3s ease, min-width .3s ease; }
+.graph-panel.collapsed { width:0 !important; min-width:0 !important; overflow:hidden; }
+.graph-panel .panel-top { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
+.graph-panel .label { font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+#graph { width:100%; flex:1; min-height:200px; }
+.cards-panel { flex:1; min-width:0; overflow-y:auto; padding:20px; transition:width .3s ease; }
+.cards-panel.collapsed { width:0 !important; min-width:0 !important; overflow:hidden; padding:0; }
+
+/* Resize handle */
+.resize-handle { width:6px; cursor:col-resize; background:var(--border); position:relative; flex-shrink:0; z-index:20; transition:background .2s; }
+.resize-handle:hover, .resize-handle.active { background:var(--accent); }
+.resize-handle::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:40px; background:var(--text-dim); border-radius:2px; opacity:.4; }
+.resize-handle:hover::after { opacity:.8; background:var(--accent2); }
+
+/* Collapse buttons */
+.collapse-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text-dim); width:28px; height:28px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all .2s; flex-shrink:0; }
+.collapse-btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+.collapse-left { position:absolute; left:-34px; top:50%; transform:translateY(-50%); z-index:25; }
+.collapse-right { position:absolute; right:-34px; top:50%; transform:translateY(-50%); z-index:25; }
+
+/* Graph controls toolbar */
+.graph-controls { display:flex; gap:4px; flex-shrink:0; flex-wrap:wrap; }
+.graph-controls button { background:var(--surface2); border:1px solid var(--border); color:var(--text-dim); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:500; transition:all .2s; white-space:nowrap; font-family:'Inter',sans-serif; }
+.graph-controls button:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+.graph-controls button.active-ctrl { background:var(--accent); color:#fff; border-color:var(--accent); }
+.graph-controls .sep { width:1px; background:var(--border); margin:0 2px; }
+
+/* Fullscreen graph */
+.graph-panel.fullscreen { position:fixed; top:0; left:0; width:100vw !important; height:100vh !important; z-index:9999; border-radius:0; }
+.graph-panel.fullscreen .panel-top { border-radius:0; }
+.fullscreen-hint { display:none; position:absolute; bottom:16px; left:50%; transform:translateX(-50%); font-size:11px; color:var(--text-dim); background:var(--surface2); padding:4px 14px; border-radius:6px; border:1px solid var(--border); z-index:10; }
+.graph-panel.fullscreen .fullscreen-hint { display:block; }
+
+/* Theme toggle */
+.theme-toggle { background:var(--surface2); border:1px solid var(--border); color:var(--text-dim); width:32px; height:32px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .2s; }
+.theme-toggle:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
 
 /* Cards */
 .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:16px; overflow:hidden; transition:all .25s; }
@@ -108,15 +158,23 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .header-links .oss-badge:hover { background:rgba(92,252,156,.18); }
 
 /* Stats bar */
-.stats { display:flex; gap:20px; padding:12px 32px; background:var(--surface); border-bottom:1px solid var(--border); }
+.stats { display:flex; gap:20px; padding:12px 32px; background:var(--surface); border-bottom:1px solid var(--border); align-items:center; flex-wrap:wrap; }
 .stat { font-size:12px; color:var(--text-dim); }
 .stat span { color:var(--text); font-weight:600; }
+.stat-cat { cursor:pointer; padding:2px 8px; border-radius:10px; transition:all .2s; border:1px solid transparent; }
+.stat-cat:hover { border-color:currentColor; opacity:.9; }
+.stat-cat.active-stat { border-color:currentColor; background:rgba(255,255,255,.08); }
+
+/* Edge animation canvas overlay */
+.edge-anim-canvas { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:5; }
 
 /* Responsive */
 @media (max-width:900px) {
   .layout { flex-direction:column; height:auto; }
-  .graph-panel { width:100%; height:400px; border-right:none; border-bottom:1px solid var(--border); }
-  .cards-panel { width:100%; }
+  .graph-panel { width:100% !important; height:400px; border-bottom:1px solid var(--border); }
+  .cards-panel { width:100% !important; }
+  .resize-handle { display:none; }
+  .collapse-btn { display:none; }
   .header { flex-direction:column; gap:12px; }
 }
 </style>
@@ -126,9 +184,10 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 <div class="header">
   <div>
     <h1>AI Toolkit Reference</h1>
-    <div class="meta">16 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
+    <div class="meta">17 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
   </div>
   <div class="header-links">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light theme">&#9788;</button>
     <a class="oss-badge" href="https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference" target="_blank">&#9733; Open Source</a>
     <a class="gh-repo" href="https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference" target="_blank">&#128193; Repo</a>
   </div>
@@ -143,16 +202,38 @@ code, pre { font-family:'JetBrains Mono',monospace; }
   <button class="filter-btn" data-cat="test">Testing</button>
   <button class="filter-btn" data-cat="rules">Rules</button>
   <button class="filter-btn" data-cat="ref">Reference</button>
+  <button class="filter-btn" data-cat="creative">Creative</button>
 </div>
 
 <div class="stats" id="stats"></div>
 
-<div class="layout">
-  <div class="graph-panel">
-    <div class="label">Relationship Graph</div>
+<div class="layout" id="layout">
+  <div class="graph-panel" id="graphPanel">
+    <div class="panel-top">
+      <span class="label">Relationship Graph</span>
+      <div class="graph-controls">
+        <button onclick="graphFit()" title="Fit all nodes in view">Fit</button>
+        <button onclick="graphZoomIn()" title="Zoom in">+</button>
+        <button onclick="graphZoomOut()" title="Zoom out">&minus;</button>
+        <div class="sep"></div>
+        <button onclick="setLayout('physics')" title="Force-directed physics layout (default)" id="btnPhysics">Physics</button>
+        <button onclick="setLayout('tree')" title="Hierarchical tree top-down" id="btnTree">Tree</button>
+        <button onclick="setLayout('radial')" title="Radial — hub nodes centered" id="btnRadial">Radial</button>
+        <button onclick="setLayout('circle')" title="Nodes arranged in a circle" id="btnCircle">Circle</button>
+        <button onclick="setLayout('grid')" title="Grid by category" class="active-ctrl" id="btnGrid">Grid</button>
+        <div class="sep"></div>
+        <button onclick="exportPNG()" title="Download graph as PNG">PNG</button>
+        <button onclick="toggleFullscreen()" title="Fullscreen graph" id="btnFullscreen">&#9974;</button>
+      </div>
+    </div>
     <div id="graph"></div>
+    <span class="fullscreen-hint">Press ESC to exit fullscreen</span>
   </div>
-  <div class="cards-panel" id="cards"></div>
+  <div class="resize-handle" id="resizeHandle"></div>
+  <div class="cards-panel" id="cards">
+    <button class="collapse-btn collapse-left" id="collapseGraph" onclick="togglePanel('graph')" title="Collapse graph">&#9664;</button>
+    <button class="collapse-btn collapse-right" id="collapseCards" onclick="togglePanel('cards')" title="Collapse cards">&#9654;</button>
+  </div>
 </div>
 
 <script>
@@ -174,40 +255,202 @@ const SHEETS = (typeof SHEET_DEFS_META !== 'undefined' ? SHEET_DEFS_META : [
   {id:13,name:"MCP Scripts",file:"MCP-Scripts",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"7 launcher scripts — HTTP, stdio, clean restart",links:[14,10,11,12],updated:"Apr 29, 2026"},
   {id:14,name:"MCP Tool Configs",file:"MCP-Tool-Configs",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"Per-tool JSON configs — Windsurf, Claude, ChatGPT, Codex",links:[13,10,2,1,6],updated:"Apr 29, 2026"},
   {id:15,name:"Windsurf Rules",file:"Windsurf-Rules",cat:"rules",catLabel:"Rules",color:"#5cfcdc",desc:"Terminal raw mode, frontend-only boundaries",links:[4,9,1],updated:"Apr 29, 2026"},
-  {id:16,name:"500 AI Projects Reference",file:"500-AI-Projects-Reference",cat:"ref",catLabel:"Reference",color:"#fcdc5c",desc:"500+ ML/DL projects mapped to Tri-Lens",links:[],updated:"Apr 29, 2026"}
+  {id:16,name:"500 AI Projects Reference",file:"500-AI-Projects-Reference",cat:"ref",catLabel:"Reference",color:"#fcdc5c",desc:"500+ ML/DL projects mapped to Tri-Lens",links:[],updated:"Apr 29, 2026"},
+  {id:17,name:"Arcads AI Video",file:"Arcads-AI-Video",cat:"creative",catLabel:"Creative",color:"#fc5ce8",desc:"AI video & image generation — Sora 2, Veo 3.1, Kling 3.0, Nano Banana",links:[1,2],updated:"May 6, 2026"}
 ]);
 
 
-// Build graph
-const nodes = SHEETS.map(s => ({
+// Original tool repos — GitHub link points here
+const REPO_URLS = {
+  1: 'https://github.com/anthropics/claude-code',
+  2: 'https://github.com/anthropics/claude-code',
+  3: 'https://github.com/anthropics/claude-code',
+  4: 'https://github.com/anthropics/claude-code',
+  5: 'https://github.com/anthropics/claude-code',
+  6: 'https://github.com/openai/codex',
+  7: 'https://github.com/nicholasgriffintn/gitnexus',
+  8: 'https://github.com/dmontagu/graphify',
+  9: 'https://github.com/anthropics/anthropic-quickstarts/tree/main/mcp-server-playwright',
+  10: 'https://github.com/coddingtonbear/obsidian-local-rest-api',
+  11: 'https://github.com/coddingtonbear/obsidian-local-rest-api',
+  12: 'https://github.com/obsidianmd/obsidian-api',
+  13: 'https://github.com/anthropics/anthropic-quickstarts',
+  14: 'https://github.com/anthropics/anthropic-quickstarts',
+  15: 'https://docs.windsurf.com',
+  16: '',
+  17: 'https://github.com/krusemediallc/arcads-claude-code'
+};
+
+// Category icons
+const CAT_ICON = { agent:'\uD83E\uDD16', intel:'\uD83E\uDDE0', mcp:'\uD83D\uDD0C', test:'\uD83E\uDDEA', rules:'\uD83D\uDCCB', ref:'\uD83D\uDCDA', creative:'\uD83C\uDFA8' };
+
+// Per-tool learning tips shown on hover
+const TIPS = {
+  1: 'Tip: Run /agents to list all 36 agents. Use /compact for token-efficient mode.',
+  2: 'Tip: Use /plugins to manage installed plugins. Check MCP server status with /mcp.',
+  3: 'Tip: Skills auto-activate by trigger phrase. Create custom skills in .claude/skills/.',
+  4: 'Tip: Each agent has a FIA level (Full/Intermediate/Audit). Codex is audit-only.',
+  5: 'Tip: Claude-Mem stores memories in SQLite + ChromaDB. Use /memory search to query.',
+  6: 'Tip: Codex CLI is SELECT-only by default. Use --full-auto for write access.',
+  7: 'Tip: Run npx gitnexus analyze to rebuild the index. Use gitnexus_impact before edits.',
+  8: 'Tip: Graphify triggers on "draw diagram" or "visualize". Outputs HTML + JSON + audit.',
+  9: 'Tip: Playwright MCP gives browser control. Use browser_navigate + browser_screenshot.',
+  10: 'Tip: Obsidian MCP bridges port 3010 to the REST API on 27124. Needs Obsidian running.',
+  11: 'Tip: Use read-obsidian-note.ps1 for direct vault access without MCP server.',
+  12: 'Tip: sync-to-obsidian.ps1 routes files by extension. Only syncs included extensions.',
+  13: 'Tip: Run start-mcp-server-http.bat for HTTP transport. Use stdio for Claude Desktop.',
+  14: 'Tip: Each AI tool needs its own JSON config. Check mcp_config/ for per-tool files.',
+  15: 'Tip: terminal_raw.md forces raw output mode. Windsurf is frontend-only in Tri-Lens.',
+  16: 'Tip: Browse by category (NLP, Vision, RL) to find projects relevant to your pipeline.',
+  17: 'Tip: Drop product photos in references/products/ and the agent uses them automatically.'
+};
+
+// Tooltip builder — returns a styled DOM element for clean wrapping
+function makeTooltip(s) {
+  const el = document.createElement('div');
+  el.style.cssText = 'max-width:260px;padding:10px 14px;font-family:Inter,sans-serif;font-size:12px;line-height:1.5;color:#e0e0f0;background:#1a1a2e;border:1px solid #2d2d50;border-radius:8px;white-space:normal;word-wrap:break-word;';
+  const name = document.createElement('div');
+  name.style.cssText = 'font-weight:700;font-size:13px;margin-bottom:4px;color:' + s.color + ';';
+  name.textContent = s.name;
+  el.appendChild(name);
+  const desc = document.createElement('div');
+  desc.style.cssText = 'color:#8888aa;margin-bottom:4px;';
+  desc.textContent = s.desc;
+  el.appendChild(desc);
+  const conn = document.createElement('div');
+  conn.style.cssText = 'color:#5c9cfc;font-size:11px;margin-bottom:6px;';
+  conn.textContent = s.links.length + ' connections';
+  el.appendChild(conn);
+  if (TIPS[s.id]) {
+    const hr = document.createElement('div');
+    hr.style.cssText = 'border-top:1px solid #2d2d50;margin:6px 0;';
+    el.appendChild(hr);
+    const tip = document.createElement('div');
+    tip.style.cssText = 'color:#5cfc9c;font-size:11px;';
+    tip.textContent = TIPS[s.id];
+    el.appendChild(tip);
+  }
+  return el;
+}
+
+// Build graph nodes with icons + tooltips + tips
+const nodesArr = SHEETS.map(s => ({
   id: s.id,
-  label: s.name,
-  color: { background: s.color, border: s.color, highlight: { background: '#fff', border: s.color } },
-  font: { color: '#e0e0f0', size: 13, face: 'Inter', strokeWidth: 3, strokeColor: '#0f0f1a' },
-  size: s.links.length > 4 ? 28 : s.links.length > 2 ? 22 : 16,
+  label: (CAT_ICON[s.cat] || '') + ' ' + s.name,
+  title: makeTooltip(s),
+  color: { background: s.color, border: s.color, highlight: { background: '#fff', border: s.color }, hover: { background: s.color + 'cc', border: '#fff' } },
+  font: { color: getComputedStyle(document.documentElement).getPropertyValue('--graph-font').trim() || '#e0e0f0', size: 13, face: 'Inter', strokeWidth: 3, strokeColor: getComputedStyle(document.documentElement).getPropertyValue('--graph-stroke').trim() || '#0f0f1a' },
+  size: s.links.length > 4 ? 30 : s.links.length > 2 ? 24 : 18,
   shape: 'dot',
   borderWidth: 2,
   shadow: { enabled: true, color: s.color + '40', size: 10 }
 }));
+const nodesDS = new vis.DataSet(nodesArr);
 
+// Build edges — thickness based on shared connections (weight)
 const edgeSet = new Set();
-const edges = [];
+const edgesArr = [];
 SHEETS.forEach(s => {
   s.links.forEach(t => {
     const key = [Math.min(s.id,t), Math.max(s.id,t)].join('-');
     if (!edgeSet.has(key)) {
       edgeSet.add(key);
-      edges.push({ from: s.id, to: t, color: { color: '#2d2d50', highlight: '#7c5cfc' }, width: 1.5, smooth: { type: 'continuous' } });
+      const target = SHEETS.find(x => x.id === t);
+      const shared = target ? s.links.filter(l => target.links.includes(l)).length : 0;
+      const w = 1 + Math.min(shared, 4) * 0.8;
+      edgesArr.push({ from: s.id, to: t, color: { color: getComputedStyle(document.documentElement).getPropertyValue('--graph-edge').trim() || '#2d2d50', highlight: '#7c5cfc', hover: '#7c5cfc' }, width: w, smooth: { type: 'continuous' } });
     }
   });
 });
+const edgesDS = new vis.DataSet(edgesArr);
 
 const container = document.getElementById('graph');
-const network = new vis.Network(container, { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) }, {
+const defaultOpts = {
   physics: { barnesHut: { gravitationalConstant: -3000, centralGravity: 0.4, springLength: 120, damping: 0.5 }, stabilization: { iterations: 200 } },
-  interaction: { hover: true, tooltipDelay: 100 },
+  interaction: { hover: true, tooltipDelay: 200, navigationButtons: false, multiselect: false, tooltipDelay: 150 },
   layout: { improvedLayout: true }
+};
+let network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, {
+  ...defaultOpts,
+  physics: { enabled: false },
+  layout: { hierarchical: false }
 });
+// Apply grid layout on initial load
+const catOrder0 = ['agent','intel','mcp','test','rules','ref','creative'];
+let y0 = 0;
+catOrder0.forEach(cat => {
+  const items = SHEETS.filter(s => s.cat === cat);
+  items.forEach((s, i) => { network.moveNode(s.id, i * 200, y0); });
+  if (items.length > 0) y0 += 150;
+});
+setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
+
+function rebuildNetwork(opts) {
+  network.destroy();
+  network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, opts || defaultOpts);
+  network.once('stabilizationIterationsDone', () => {
+    network.fit({ animation: { duration: 500 } });
+  });
+  bindNetworkEvents();
+}
+
+// === Neighbor highlight on hover ===
+let highlightActive = false;
+function bindNetworkEvents() {
+  network.on('hoverNode', params => { highlightNeighbors(params.node); });
+  network.on('blurNode', () => { resetHighlight(); });
+  network.on('click', params => {
+    if (params.nodes.length) {
+      const id = params.nodes[0];
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('open'));
+      const card = document.querySelector(`.card[data-id="${id}"]`);
+      if (card) { card.classList.add('open'); card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+  });
+}
+bindNetworkEvents();
+
+function highlightNeighbors(nodeId) {
+  const connNodes = network.getConnectedNodes(nodeId);
+  const connEdges = network.getConnectedEdges(nodeId);
+  const allNodes = nodesDS.get();
+  const allEdges = edgesDS.get();
+  allNodes.forEach(n => {
+    if (n.id === nodeId || connNodes.includes(n.id)) {
+      n.opacity = 1.0;
+    } else {
+      n.opacity = 0.15;
+    }
+  });
+  allEdges.forEach(e => {
+    if (connEdges.includes(e.id)) {
+      e.color = { ...e.color, opacity: 1.0 };
+      e.width = (e._origWidth || e.width) + 1;
+    } else {
+      e.color = { ...e.color, opacity: 0.08 };
+    }
+  });
+  nodesDS.update(allNodes);
+  edgesDS.update(allEdges);
+  highlightActive = true;
+}
+
+function resetHighlight() {
+  if (!highlightActive) return;
+  const allNodes = nodesDS.get();
+  const allEdges = edgesDS.get();
+  allNodes.forEach(n => { n.opacity = 1.0; });
+  allEdges.forEach(e => {
+    e.color = { ...e.color, opacity: 1.0 };
+    const s = SHEETS.find(x => x.id === e.from);
+    const t = SHEETS.find(x => x.id === e.to);
+    const shared = (s && t) ? s.links.filter(l => t.links.includes(l)).length : 0;
+    e.width = 1 + Math.min(shared, 4) * 0.8;
+  });
+  nodesDS.update(allNodes);
+  edgesDS.update(allEdges);
+  highlightActive = false;
+}
 
 // Build cards
 const cardsEl = document.getElementById('cards');
@@ -229,8 +472,8 @@ SHEETS.forEach(s => {
       <span class="chevron">&#9654;</span>
     </div>
     <div class="card-meta">
-      <a class="file-link" href="${ghUrl}" target="_blank" title="Open source file">&#128196; ${s.file}.md</a>
-      <a class="gh-link" href="${ghUrl}" target="_blank" title="View on GitHub">&#9733; GitHub</a>
+      <a class="file-link" href="${ghUrl}" target="_blank" title="View cheat sheet source">&#128196; ${s.file}.md</a>
+      ${REPO_URLS[s.id] ? `<a class="gh-link" href="${REPO_URLS[s.id]}" target="_blank" title="Original tool repo">&#9733; Original Repo</a>` : ''}
       <span class="updated">Updated: ${s.updated}</span>
     </div>
     <div class="card-body">
@@ -244,26 +487,28 @@ SHEETS.forEach(s => {
   cardsEl.appendChild(card);
 });
 
-// Graph click -> open card
-network.on('click', params => {
-  if (params.nodes.length) {
-    const id = params.nodes[0];
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('open'));
-    const card = document.querySelector(`.card[data-id="${id}"]`);
-    if (card) {
-      card.classList.add('open');
-      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-});
 
-// Search
+// Search — syncs cards AND graph
 document.getElementById('search').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
+  const matchIds = [];
   document.querySelectorAll('.card').forEach(c => {
     const match = c.dataset.name.includes(q) || c.querySelector('.card-body').textContent.toLowerCase().includes(q);
     c.classList.toggle('hidden', !match);
+    if (match) matchIds.push(parseInt(c.dataset.id));
   });
+  // Highlight matching nodes in graph
+  if (q.length > 0) {
+    const allNodes = nodesDS.get();
+    allNodes.forEach(n => { n.opacity = matchIds.includes(n.id) ? 1.0 : 0.15; });
+    nodesDS.update(allNodes);
+    if (matchIds.length > 0 && matchIds.length <= 5) {
+      network.selectNodes(matchIds);
+    }
+  } else {
+    resetHighlight();
+    network.setSelection({ nodes: [], edges: [] });
+  }
   updateStats();
 });
 
@@ -286,15 +531,313 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
   });
 });
 
+let activeStatCat = null;
 function updateStats() {
   const visible = document.querySelectorAll('.card:not(.hidden)').length;
   const total = SHEETS.length;
+  const cats = [
+    { key:'agent', label:'Agent', count:SHEETS.filter(s=>s.cat==='agent').length },
+    { key:'intel', label:'Intel', count:SHEETS.filter(s=>s.cat==='intel').length },
+    { key:'mcp', label:'MCP', count:SHEETS.filter(s=>s.cat==='mcp').length },
+    { key:'test', label:'Test', count:SHEETS.filter(s=>s.cat==='test').length },
+    { key:'rules', label:'Rules', count:SHEETS.filter(s=>s.cat==='rules').length },
+    { key:'ref', label:'Ref', count:SHEETS.filter(s=>s.cat==='ref').length },
+    { key:'creative', label:'Creative', count:SHEETS.filter(s=>s.cat==='creative').length }
+  ];
+  const allActive = activeStatCat === null ? ' active-stat' : '';
+  const allHtml = `<span class="stat-cat${allActive}" style="color:var(--accent)" data-scat="all">All (${total})</span>`;
+  const catHtml = cats.map(c => {
+    const active = activeStatCat === c.key ? ' active-stat' : '';
+    return `<span class="stat-cat${active}" style="color:var(--cat-${c.key})" data-scat="${c.key}">${c.label} (${c.count})</span>`;
+  }).join(' &bull; ');
   document.getElementById('stats').innerHTML = `
     <div class="stat">Showing <span>${visible}</span> of <span>${total}</span> guides</div>
-    <div class="stat">Categories: <span style="color:var(--cat-agent)">Agent (6)</span> &bull; <span style="color:var(--cat-intel)">Intel (2)</span> &bull; <span style="color:var(--cat-mcp)">MCP (5)</span> &bull; <span style="color:var(--cat-test)">Test (1)</span> &bull; <span style="color:var(--cat-rules)">Rules (1)</span> &bull; <span style="color:var(--cat-ref)">Ref (1)</span></div>
+    <div class="stat">Categories: ${allHtml} &bull; ${catHtml}</div>
   `;
+  // Bind click on stat categories
+  document.querySelectorAll('.stat-cat').forEach(el => {
+    el.addEventListener('click', () => {
+      const cat = el.dataset.scat;
+      if (cat === 'all' || activeStatCat === cat) {
+        // Show all
+        activeStatCat = null;
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('hidden'));
+        resetHighlight();
+        network.setSelection({ nodes: [], edges: [] });
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.filter-btn[data-cat="all"]').classList.add('active');
+      } else {
+        activeStatCat = cat;
+        document.querySelectorAll('.card').forEach(c => {
+          c.classList.toggle('hidden', c.dataset.cat !== cat);
+        });
+        // Highlight matching nodes, dim others
+        const matchIds = SHEETS.filter(s => s.cat === cat).map(s => s.id);
+        const allNodes = nodesDS.get();
+        allNodes.forEach(n => { n.opacity = matchIds.includes(n.id) ? 1.0 : 0.15; });
+        nodesDS.update(allNodes);
+        network.selectNodes(matchIds);
+        // Sync filter buttons
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        const matchBtn = document.querySelector(`.filter-btn[data-cat="${cat}"]`);
+        if (matchBtn) matchBtn.classList.add('active');
+      }
+      updateStats();
+    });
+  });
 }
 updateStats();
+
+// === Resize handle ===
+const resizeHandle = document.getElementById('resizeHandle');
+const graphPanel = document.getElementById('graphPanel');
+const layout = document.getElementById('layout');
+let isResizing = false;
+
+resizeHandle.addEventListener('mousedown', e => {
+  isResizing = true;
+  resizeHandle.classList.add('active');
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', e => {
+  if (!isResizing) return;
+  const rect = layout.getBoundingClientRect();
+  const pct = ((e.clientX - rect.left) / rect.width) * 100;
+  const clamped = Math.max(15, Math.min(85, pct));
+  graphPanel.style.width = clamped + '%';
+  network.redraw();
+});
+
+document.addEventListener('mouseup', () => {
+  if (isResizing) {
+    isResizing = false;
+    resizeHandle.classList.remove('active');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    network.fit({ animation: { duration: 300 } });
+  }
+});
+
+// === Collapse / Expand ===
+let graphCollapsed = false;
+let cardsCollapsed = false;
+const collapseGraphBtn = document.getElementById('collapseGraph');
+const collapseCardsBtn = document.getElementById('collapseCards');
+
+function togglePanel(which) {
+  if (which === 'graph') {
+    graphCollapsed = !graphCollapsed;
+    graphPanel.classList.toggle('collapsed', graphCollapsed);
+    resizeHandle.style.display = graphCollapsed ? 'none' : '';
+    collapseGraphBtn.innerHTML = graphCollapsed ? '&#9654;' : '&#9664;';
+    collapseGraphBtn.title = graphCollapsed ? 'Expand graph' : 'Collapse graph';
+    if (!graphCollapsed) setTimeout(() => network.fit({ animation: true }), 350);
+  } else {
+    cardsCollapsed = !cardsCollapsed;
+    document.getElementById('cards').classList.toggle('collapsed', cardsCollapsed);
+    resizeHandle.style.display = cardsCollapsed ? 'none' : '';
+    collapseCardsBtn.innerHTML = cardsCollapsed ? '&#9664;' : '&#9654;';
+    collapseCardsBtn.title = cardsCollapsed ? 'Expand cards' : 'Collapse cards';
+    if (!cardsCollapsed) setTimeout(() => network.fit({ animation: true }), 350);
+  }
+}
+
+// === Graph Controls ===
+let currentLayout = 'grid';
+const layoutBtns = ['btnPhysics','btnTree','btnRadial','btnCircle','btnGrid'];
+
+function graphFit() {
+  network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+}
+
+function graphZoomIn() {
+  const scale = network.getScale();
+  network.moveTo({ scale: scale * 1.4, animation: { duration: 300 } });
+}
+
+function graphZoomOut() {
+  const scale = network.getScale();
+  network.moveTo({ scale: scale / 1.4, animation: { duration: 300 } });
+}
+
+function highlightLayoutBtn(name) {
+  layoutBtns.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active-ctrl', id === 'btn' + name.charAt(0).toUpperCase() + name.slice(1));
+  });
+}
+
+function setLayout(name) {
+  // If clicking the already-active layout, reset to physics
+  if (name === currentLayout && name !== 'physics') {
+    name = 'physics';
+  }
+  currentLayout = name;
+  highlightLayoutBtn(name);
+
+  if (name === 'physics') {
+    rebuildNetwork();
+  } else if (name === 'tree') {
+    rebuildNetwork({
+      layout: { hierarchical: { enabled: true, direction: 'UD', sortMethod: 'hubsize', levelSeparation: 100, nodeSpacing: 150 } },
+      physics: { enabled: true, hierarchicalRepulsion: { centralGravity: 0.2, springLength: 100, nodeSpacing: 120 } },
+      interaction: defaultOpts.interaction
+    });
+  } else if (name === 'radial') {
+    // Radial: most-connected node at center, others radiate out by distance
+    rebuildNetwork({
+      layout: { hierarchical: false },
+      physics: { enabled: false },
+      interaction: defaultOpts.interaction
+    });
+    const sorted = [...SHEETS].sort((a, b) => b.links.length - a.links.length);
+    const hubId = sorted[0].id;
+    network.moveNode(hubId, 0, 0);
+    // Ring 1: direct connections, Ring 2: everything else
+    const ring1 = sorted[0].links;
+    const ring2 = SHEETS.filter(s => s.id !== hubId && !ring1.includes(s.id)).map(s => s.id);
+    ring1.forEach((id, i) => {
+      const angle = (2 * Math.PI * i) / ring1.length - Math.PI / 2;
+      network.moveNode(id, 180 * Math.cos(angle), 180 * Math.sin(angle));
+    });
+    ring2.forEach((id, i) => {
+      const angle = (2 * Math.PI * i) / ring2.length - Math.PI / 2;
+      network.moveNode(id, 350 * Math.cos(angle), 350 * Math.sin(angle));
+    });
+    setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
+  } else if (name === 'circle') {
+    rebuildNetwork({
+      layout: { hierarchical: false },
+      physics: { enabled: false },
+      interaction: defaultOpts.interaction
+    });
+    const r = 280;
+    SHEETS.forEach((s, i) => {
+      const angle = (2 * Math.PI * i) / SHEETS.length - Math.PI / 2;
+      network.moveNode(s.id, r * Math.cos(angle), r * Math.sin(angle));
+    });
+    setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
+  } else if (name === 'grid') {
+    // Grid: group by category, rows per category
+    rebuildNetwork({
+      layout: { hierarchical: false },
+      physics: { enabled: false },
+      interaction: defaultOpts.interaction
+    });
+    const catOrder = ['agent','intel','mcp','test','rules','ref'];
+    let y = 0;
+    catOrder.forEach(cat => {
+      const items = SHEETS.filter(s => s.cat === cat);
+      items.forEach((s, i) => {
+        network.moveNode(s.id, i * 200, y);
+      });
+      if (items.length > 0) y += 150;
+    });
+    setTimeout(() => network.fit({ animation: { duration: 500 } }), 100);
+  }
+}
+
+// === Export as PNG ===
+function exportPNG() {
+  const canvas = container.querySelector('canvas');
+  if (!canvas) return;
+  const link = document.createElement('a');
+  link.download = 'ai-toolkit-reference-graph.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// === Fullscreen ===
+function toggleFullscreen() {
+  graphPanel.classList.toggle('fullscreen');
+  setTimeout(() => network.fit({ animation: { duration: 400 } }), 100);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && graphPanel.classList.contains('fullscreen')) {
+    graphPanel.classList.remove('fullscreen');
+    setTimeout(() => network.fit({ animation: { duration: 400 } }), 100);
+  }
+});
+
+// === Theme toggle ===
+let currentTheme = 'dark';
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  const btn = document.getElementById('themeToggle');
+  btn.innerHTML = currentTheme === 'dark' ? '&#9788;' : '&#9790;';
+  btn.title = currentTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  // Update graph colors
+  const cs = getComputedStyle(document.documentElement);
+  const fontColor = cs.getPropertyValue('--graph-font').trim();
+  const strokeColor = cs.getPropertyValue('--graph-stroke').trim();
+  const edgeColor = cs.getPropertyValue('--graph-edge').trim();
+  const allNodes = nodesDS.get();
+  allNodes.forEach(n => {
+    n.font = { ...n.font, color: fontColor, strokeColor: strokeColor };
+  });
+  nodesDS.update(allNodes);
+  const allEdges = edgesDS.get();
+  allEdges.forEach(e => {
+    e.color = { ...e.color, color: edgeColor };
+  });
+  edgesDS.update(allEdges);
+}
+
+// === Animated edge pulses ===
+let animRunning = false;
+let animFrame = null;
+function startEdgeAnimation() {
+  if (animRunning) return;
+  animRunning = true;
+  const canvas = document.createElement('canvas');
+  canvas.className = 'edge-anim-canvas';
+  const graphDiv = document.getElementById('graph');
+  graphDiv.style.position = 'relative';
+  graphDiv.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  let t = 0;
+  function draw() {
+    if (!animRunning) { canvas.remove(); return; }
+    canvas.width = graphDiv.offsetWidth;
+    canvas.height = graphDiv.offsetHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const positions = network.getPositions();
+    const scale = network.getScale();
+    const viewPos = network.getViewPosition();
+    edgesArr.forEach(e => {
+      const from = positions[e.from];
+      const to = positions[e.to];
+      if (!from || !to) return;
+      const fx = (from.x - viewPos.x) * scale + canvas.width / 2;
+      const fy = (from.y - viewPos.y) * scale + canvas.height / 2;
+      const tx = (to.x - viewPos.x) * scale + canvas.width / 2;
+      const ty = (to.y - viewPos.y) * scale + canvas.height / 2;
+      const progress = ((t * 0.003) + (e.from * 0.1)) % 1;
+      const px = fx + (tx - fx) * progress;
+      const py = fy + (ty - fy) * progress;
+      ctx.beginPath();
+      ctx.arc(px, py, 3 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(124, 92, 252, 0.6)';
+      ctx.fill();
+    });
+    t++;
+    animFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+function stopEdgeAnimation() {
+  animRunning = false;
+  if (animFrame) cancelAnimationFrame(animFrame);
+  const c = document.querySelector('.edge-anim-canvas');
+  if (c) c.remove();
+}
+// Start animation by default — toggle with: startEdgeAnimation() / stopEdgeAnimation()
+startEdgeAnimation();
+
 </script>
 </body>
 </html>
