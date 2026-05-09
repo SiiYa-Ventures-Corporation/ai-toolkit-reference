@@ -41,13 +41,34 @@
   --surface2: #ebedf0;
   --border: #d0d5dd;
   --text: #1a1a2e;
-  --text-dim: #5a5f7a;
-  --accent: #6c4cec;
-  --accent2: #3a7ce0;
+  --text-dim: #3a3f5a;
+  --accent: #5a3ad8;
+  --accent2: #2a60c0;
+  --red: #c0304a;
+  --green: #1a8a4a;
+  --orange: #b07020;
+  --yellow: #907010;
+  --teal: #0a7a7a;
+  --pink: #b030a0;
+  --cat-agent: #c0304a;
+  --cat-intel: #b07020;
+  --cat-mcp: #1a8a4a;
+  --cat-test: #5a3ad8;
+  --cat-rules: #0a7a7a;
+  --cat-ref: #907010;
+  --cat-creative: #b030a0;
   --graph-font: #1a1a2e;
   --graph-stroke: #ffffff;
-  --graph-edge: #c0c4d0;
+  --graph-edge: #a0a8b8;
 }
+[data-theme="light"] .header { background:linear-gradient(135deg, #e8eaf0 0%, #d8dce8 100%); }
+[data-theme="light"] .header h1 { -webkit-text-fill-color:transparent; background:linear-gradient(135deg, #5a3ad8, #2a60c0); -webkit-background-clip:text; background-clip:text; }
+[data-theme="light"] .header .meta { color:#3a3f5a; }
+[data-theme="light"] .header-links .gh-repo { color:#1a1a2e; background:rgba(0,0,0,.06); border-color:rgba(0,0,0,.15); }
+[data-theme="light"] .header-links .oss-badge { color:#1a8a4a; }
+[data-theme="light"] .card-body code { color:#1a8a4a; }
+[data-theme="light"] .card-meta .file-link { color:#1a8a4a; }
+[data-theme="light"] .stat-cat.active-stat { background:rgba(0,0,0,.08); }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 code, pre { font-family:'JetBrains Mono',monospace; }
@@ -57,19 +78,34 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .header h1 { font-size:22px; font-weight:700; background:linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
 .header .meta { font-size:13px; color:var(--text-dim); }
 
-/* Search */
-.search-bar { padding:16px 32px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+/* Search & filter bar */
+.search-bar { padding:12px 32px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
 .search-bar input { flex:1; min-width:200px; padding:10px 16px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; outline:none; transition:border .2s; }
 .search-bar input:focus { border-color:var(--accent); }
-.filter-btn { padding:6px 14px; border-radius:16px; border:1px solid var(--border); background:transparent; color:var(--text-dim); font-size:12px; font-weight:500; cursor:pointer; transition:all .2s; white-space:nowrap; }
-.filter-btn:hover, .filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
-.filter-btn[data-cat="agent"].active { background:var(--cat-agent); border-color:var(--cat-agent); }
-.filter-btn[data-cat="intel"].active { background:var(--cat-intel); border-color:var(--cat-intel); color:#000; }
-.filter-btn[data-cat="mcp"].active { background:var(--cat-mcp); border-color:var(--cat-mcp); color:#000; }
-.filter-btn[data-cat="test"].active { background:var(--cat-test); border-color:var(--cat-test); }
-.filter-btn[data-cat="rules"].active { background:var(--cat-rules); border-color:var(--cat-rules); color:#000; }
-.filter-btn[data-cat="ref"].active { background:var(--cat-ref); border-color:var(--cat-ref); color:#000; }
-.filter-btn[data-cat="creative"].active { background:var(--cat-creative); border-color:var(--cat-creative); color:#fff; }
+
+/* Dropdown wrapper */
+.dropdown-wrap { position:relative; display:inline-block; }
+.dropdown-toggle { padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:12px; font-weight:500; cursor:pointer; transition:all .2s; white-space:nowrap; font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:6px; }
+.dropdown-toggle:hover { border-color:var(--accent); }
+.dropdown-toggle .arrow { font-size:9px; transition:transform .2s; }
+.dropdown-wrap.open .dropdown-toggle .arrow { transform:rotate(180deg); }
+.dropdown-menu { display:none; position:absolute; top:calc(100% + 4px); left:0; min-width:220px; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,.25); z-index:200; padding:8px 0; max-height:360px; overflow-y:auto; }
+.dropdown-wrap.open .dropdown-menu { display:block; }
+.dropdown-menu label { display:flex; align-items:center; gap:10px; padding:8px 16px; font-size:12px; color:var(--text); cursor:pointer; transition:background .15s; user-select:none; }
+.dropdown-menu label:hover { background:var(--surface2); }
+.dropdown-menu label.disabled { opacity:.4; cursor:not-allowed; pointer-events:none; }
+.dropdown-menu label .dot-swatch { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.dropdown-menu input[type="checkbox"] { accent-color:var(--accent); width:15px; height:15px; cursor:pointer; }
+.dropdown-menu .dd-divider { height:1px; background:var(--border); margin:6px 0; }
+.dropdown-menu .dd-footer { padding:8px 12px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid var(--border); margin-top:4px; }
+.dd-apply-btn { padding:5px 16px; border-radius:6px; border:none; background:var(--accent); color:#fff; font-size:11px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:all .2s; }
+.dd-apply-btn:hover { filter:brightness(1.15); }
+.dd-reset-btn { padding:5px 12px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-dim); font-size:11px; font-weight:500; cursor:pointer; font-family:'Inter',sans-serif; transition:all .2s; }
+.dd-reset-btn:hover { border-color:var(--accent); color:var(--text); }
+.provider-icon { width:16px; height:16px; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; }
+.provider-icon.claude { background:#fc5c7c; color:#fff; }
+.provider-icon.chatgpt { background:#74aa9c; color:#fff; }
+.provider-icon.gemini { background:#4285f4; color:#fff; }
 
 /* Layout */
 .layout { display:flex; height:calc(100vh - 130px); position:relative; }
@@ -78,7 +114,10 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .graph-panel .panel-top { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
 .graph-panel .label { font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
 #graph { width:100%; flex:1; min-height:200px; }
-.cards-panel { flex:1; min-width:0; overflow-y:auto; padding:20px; transition:width .3s ease; }
+.cards-panel { flex:1; min-width:0; overflow-y:auto; padding:0; transition:width .3s ease; display:flex; flex-direction:column; }
+.cards-panel .panel-top { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
+.cards-panel .label { font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+.cards-inner { flex:1; overflow-y:auto; padding:20px; }
 .cards-panel.collapsed { width:0 !important; min-width:0 !important; overflow:hidden; padding:0; }
 
 /* Resize handle */
@@ -116,7 +155,7 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .card.hidden { display:none; }
 .card-header { padding:16px 20px; cursor:pointer; display:flex; align-items:center; gap:12px; }
 .card-header .dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.card-header h3 { font-size:15px; font-weight:600; flex:1; }
+.card-header h3 { font-size:16px; font-weight:600; flex:1; }
 .card-header .badge { font-size:11px; padding:3px 10px; border-radius:12px; font-weight:500; }
 .card-header .chevron { font-size:18px; color:var(--text-dim); transition:transform .2s; }
 .card.open .card-header .chevron { transform:rotate(90deg); }
@@ -124,15 +163,15 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 .card.open .card-body { display:block; }
 
 /* Markdown content */
-.card-body h2 { font-size:15px; font-weight:600; margin:16px 0 8px; color:var(--accent2); }
-.card-body h3 { font-size:13px; font-weight:600; margin:12px 0 6px; color:var(--text); }
-.card-body p { font-size:13px; line-height:1.6; color:var(--text-dim); margin:6px 0; }
-.card-body ul, .card-body ol { font-size:13px; color:var(--text-dim); margin:6px 0 6px 20px; }
+.card-body h2 { font-size:16px; font-weight:600; margin:16px 0 8px; color:var(--accent2); }
+.card-body h3 { font-size:14px; font-weight:600; margin:12px 0 6px; color:var(--text); }
+.card-body p { font-size:14px; line-height:1.6; color:var(--text-dim); margin:6px 0; }
+.card-body ul, .card-body ol { font-size:14px; color:var(--text-dim); margin:6px 0 6px 20px; }
 .card-body li { margin:3px 0; }
-.card-body code { background:var(--surface2); padding:2px 6px; border-radius:4px; font-size:12px; color:var(--green); }
+.card-body code { background:var(--surface2); padding:2px 6px; border-radius:4px; font-size:13px; color:var(--green); }
 .card-body pre { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin:8px 0; overflow-x:auto; }
 .card-body pre code { background:transparent; padding:0; color:var(--text-dim); }
-.card-body table { width:100%; border-collapse:collapse; margin:8px 0; font-size:12px; }
+.card-body table { width:100%; border-collapse:collapse; margin:8px 0; font-size:13px; }
 .card-body th { text-align:left; padding:8px 10px; background:var(--surface2); color:var(--text); font-weight:600; border:1px solid var(--border); }
 .card-body td { padding:8px 10px; border:1px solid var(--border); color:var(--text-dim); }
 .card-body strong { color:var(--text); }
@@ -182,9 +221,12 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 <body>
 
 <div class="header">
-  <div>
-    <h1>AI Toolkit Reference</h1>
-    <div class="meta">19 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <img src="siiya-logo.svg" alt="SiiYa" style="height:40px;width:auto;">
+    <div>
+      <h1>AI Toolkit Reference</h1>
+      <div class="meta">19 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
+    </div>
   </div>
   <div class="header-links">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light theme">&#9788;</button>
@@ -195,14 +237,38 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 
 <div class="search-bar">
   <input type="text" id="search" placeholder="Search reference guides..." autocomplete="off">
-  <button class="filter-btn active" data-cat="all">All</button>
-  <button class="filter-btn" data-cat="agent">AI Agents</button>
-  <button class="filter-btn" data-cat="intel">Code Intel</button>
-  <button class="filter-btn" data-cat="mcp">MCP &amp; Obsidian</button>
-  <button class="filter-btn" data-cat="test">Testing</button>
-  <button class="filter-btn" data-cat="rules">Rules</button>
-  <button class="filter-btn" data-cat="ref">Reference</button>
-  <button class="filter-btn" data-cat="creative">Creative</button>
+
+  <!-- AI Provider dropdown -->
+  <div class="dropdown-wrap" id="providerDrop">
+    <button class="dropdown-toggle" onclick="toggleDrop('providerDrop', event)">
+      AI Provider <span class="arrow">&#9660;</span>
+    </button>
+    <div class="dropdown-menu">
+      <label><input type="checkbox" checked data-provider="claude"> <span class="provider-icon claude">C</span> Claude</label>
+      <label class="disabled"><input type="checkbox" disabled data-provider="chatgpt"> <span class="provider-icon chatgpt">G</span> ChatGPT <em style="font-size:10px;color:var(--text-dim)">(coming soon)</em></label>
+      <label class="disabled"><input type="checkbox" disabled data-provider="gemini"> <span class="provider-icon gemini">G</span> Gemini <em style="font-size:10px;color:var(--text-dim)">(coming soon)</em></label>
+    </div>
+  </div>
+
+  <!-- Categories dropdown with checkboxes + Apply -->
+  <div class="dropdown-wrap" id="categoryDrop">
+    <button class="dropdown-toggle" onclick="toggleDrop('categoryDrop', event)">
+      Categories <span id="catBadge" style="background:var(--accent);color:#fff;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;">All</span> <span class="arrow">&#9660;</span>
+    </button>
+    <div class="dropdown-menu">
+      <label><input type="checkbox" data-cat="agent"> <span class="dot-swatch" style="background:var(--cat-agent)"></span> AI Agents</label>
+      <label><input type="checkbox" data-cat="intel"> <span class="dot-swatch" style="background:var(--cat-intel)"></span> Code Intel</label>
+      <label><input type="checkbox" data-cat="mcp"> <span class="dot-swatch" style="background:var(--cat-mcp)"></span> MCP &amp; Obsidian</label>
+      <label><input type="checkbox" data-cat="test"> <span class="dot-swatch" style="background:var(--cat-test)"></span> Testing</label>
+      <label><input type="checkbox" data-cat="rules"> <span class="dot-swatch" style="background:var(--cat-rules)"></span> Rules</label>
+      <label><input type="checkbox" data-cat="ref"> <span class="dot-swatch" style="background:var(--cat-ref)"></span> Reference</label>
+      <label><input type="checkbox" data-cat="creative"> <span class="dot-swatch" style="background:var(--cat-creative)"></span> Creative</label>
+      <div class="dd-footer">
+        <button class="dd-reset-btn" onclick="resetCategoryFilter()">Reset</button>
+        <button class="dd-apply-btn" onclick="applyCategoryFilter()">Apply</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="stats" id="stats"></div>
@@ -230,9 +296,15 @@ code, pre { font-family:'JetBrains Mono',monospace; }
     <span class="fullscreen-hint">Press ESC to exit fullscreen</span>
   </div>
   <div class="resize-handle" id="resizeHandle"></div>
-  <div class="cards-panel" id="cards">
-    <button class="collapse-btn collapse-left" id="collapseGraph" onclick="togglePanel('graph')" title="Collapse graph">&#9664;</button>
-    <button class="collapse-btn collapse-right" id="collapseCards" onclick="togglePanel('cards')" title="Collapse cards">&#9654;</button>
+  <div class="cards-panel" id="cardsPanel">
+    <div class="panel-top">
+      <span class="label">Guide Explorer</span>
+      <span style="font-size:11px;color:var(--text-dim)" id="guideCount">19 guides</span>
+    </div>
+    <div class="cards-inner" id="cards">
+      <button class="collapse-btn collapse-left" id="collapseGraph" onclick="togglePanel('graph')" title="Collapse graph">&#9664;</button>
+      <button class="collapse-btn collapse-right" id="collapseCards" onclick="togglePanel('cards')" title="Collapse cards">&#9654;</button>
+    </div>
   </div>
 </div>
 
@@ -442,11 +514,11 @@ function highlightNeighbors(nodeId) {
 }
 
 function resetHighlight() {
-  if (!highlightActive) return;
   const allNodes = nodesDS.get();
   const allEdges = edgesDS.get();
-  allNodes.forEach(n => { n.opacity = 1.0; });
+  allNodes.forEach(n => { n.opacity = 1.0; n.hidden = false; });
   allEdges.forEach(e => {
+    e.hidden = false;
     e.color = { ...e.color, opacity: 1.0 };
     const s = SHEETS.find(x => x.id === e.from);
     const t = SHEETS.find(x => x.id === e.to);
@@ -518,45 +590,108 @@ document.getElementById('search').addEventListener('input', e => {
   updateStats();
 });
 
-// Filter buttons — multi-select: click toggles each category, "All" resets
+// === Dropdown toggle logic ===
+function toggleDrop(id, evt) {
+  if (evt) evt.stopPropagation();
+  const el = document.getElementById(id);
+  const wasOpen = el.classList.contains('open');
+  // Close all dropdowns first
+  document.querySelectorAll('.dropdown-wrap').forEach(d => d.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+}
+// Close dropdowns when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown-wrap')) {
+    document.querySelectorAll('.dropdown-wrap').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// === Category filter with Apply button ===
 let activeCats = new Set();
+
+function applyCategoryFilter() {
+  // Read checked state from dropdown checkboxes
+  activeCats.clear();
+  document.querySelectorAll('#categoryDrop input[data-cat]').forEach(cb => {
+    if (cb.checked) activeCats.add(cb.dataset.cat);
+  });
+  applyFilters();
+  document.getElementById('categoryDrop').classList.remove('open');
+}
+
+function resetCategoryFilter() {
+  activeCats.clear();
+  document.querySelectorAll('#categoryDrop input[data-cat]').forEach(cb => { cb.checked = false; });
+  applyFilters();
+  document.getElementById('categoryDrop').classList.remove('open');
+}
+
 function applyFilters() {
   const showAll = activeCats.size === 0;
+  // Filter cards
   document.querySelectorAll('.card').forEach(c => {
     c.classList.toggle('hidden', !showAll && !activeCats.has(c.dataset.cat));
   });
+  // Update badge text
+  const badge = document.getElementById('catBadge');
+  if (showAll) {
+    badge.textContent = 'All';
+  } else {
+    badge.textContent = activeCats.size + ' selected';
+  }
+  // Graph: connected-only filtering
   if (showAll) {
     resetHighlight();
     network.setSelection({ nodes: [], edges: [] });
+    // Show all edges
+    const allEdges = edgesDS.get();
+    allEdges.forEach(e => { e.hidden = false; e.color = { ...e.color, opacity: 1.0 }; });
+    edgesDS.update(allEdges);
   } else {
-    const ids = SHEETS.filter(s => activeCats.has(s.cat)).map(s => s.id);
+    // Get primary IDs (nodes in selected categories)
+    const primaryIds = new Set(SHEETS.filter(s => activeCats.has(s.cat)).map(s => s.id));
+    // Get connected IDs (neighbors of primary nodes)
+    const connectedIds = new Set(primaryIds);
+    primaryIds.forEach(id => {
+      const sheet = SHEETS.find(s => s.id === id);
+      if (sheet) sheet.links.forEach(l => connectedIds.add(l));
+    });
+    // Update nodes: primary = full, connected = dimmed, others = hidden
     const allNodes = nodesDS.get();
-    allNodes.forEach(n => { n.opacity = ids.includes(n.id) ? 1.0 : 0.15; });
-    nodesDS.update(allNodes);
-    network.selectNodes(ids);
-  }
-  // Sync button styles
-  document.querySelector('.filter-btn[data-cat="all"]').classList.toggle('active', showAll);
-  document.querySelectorAll('.filter-btn:not([data-cat="all"])').forEach(b => {
-    b.classList.toggle('active', activeCats.has(b.dataset.cat));
-  });
-  updateStats();
-}
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const cat = btn.dataset.cat;
-    if (cat === 'all') {
-      activeCats.clear();
-    } else {
-      if (activeCats.has(cat)) {
-        activeCats.delete(cat);
+    allNodes.forEach(n => {
+      if (primaryIds.has(n.id)) {
+        n.opacity = 1.0;
+        n.hidden = false;
+      } else if (connectedIds.has(n.id)) {
+        n.opacity = 0.3;
+        n.hidden = false;
       } else {
-        activeCats.add(cat);
+        n.hidden = true;
       }
-    }
-    applyFilters();
-  });
-});
+    });
+    nodesDS.update(allNodes);
+    // Update edges: show only edges where BOTH endpoints are visible
+    const allEdges = edgesDS.get();
+    allEdges.forEach(e => {
+      const fromVisible = connectedIds.has(e.from);
+      const toVisible = connectedIds.has(e.to);
+      const bothPrimary = primaryIds.has(e.from) && primaryIds.has(e.to);
+      if (fromVisible && toVisible) {
+        e.hidden = false;
+        e.color = { ...e.color, opacity: bothPrimary ? 1.0 : 0.3 };
+      } else {
+        e.hidden = true;
+      }
+    });
+    edgesDS.update(allEdges);
+    network.selectNodes([...primaryIds]);
+    setTimeout(() => network.fit({ animation: { duration: 400 } }), 50);
+  }
+  updateStats();
+  // Update guide count in right panel
+  const visible = document.querySelectorAll('.card:not(.hidden)').length;
+  document.getElementById('guideCount').textContent = visible + ' guides';
+}
 
 function updateStats() {
   const visible = document.querySelectorAll('.card:not(.hidden)').length;
@@ -580,18 +715,22 @@ function updateStats() {
     <div class="stat">Showing <span>${visible}</span> of <span>${total}</span> guides</div>
     <div class="stat">Categories: ${allHtml} &bull; ${catHtml}</div>
   `;
-  // Bind click on stat categories — delegates to multi-select filter system
+  // Bind click on stat categories — syncs with dropdown checkboxes
   document.querySelectorAll('.stat-cat').forEach(el => {
     el.addEventListener('click', () => {
       const cat = el.dataset.scat;
       if (cat === 'all') {
         activeCats.clear();
+        document.querySelectorAll('#categoryDrop input[data-cat]').forEach(cb => { cb.checked = false; });
       } else {
         if (activeCats.has(cat)) {
           activeCats.delete(cat);
         } else {
           activeCats.add(cat);
         }
+        // Sync checkbox
+        const cb = document.querySelector(`#categoryDrop input[data-cat="${cat}"]`);
+        if (cb) cb.checked = activeCats.has(cat);
       }
       applyFilters();
     });
@@ -648,7 +787,7 @@ function togglePanel(which) {
     if (!graphCollapsed) setTimeout(() => network.fit({ animation: true }), 350);
   } else {
     cardsCollapsed = !cardsCollapsed;
-    document.getElementById('cards').classList.toggle('collapsed', cardsCollapsed);
+    document.getElementById('cardsPanel').classList.toggle('collapsed', cardsCollapsed);
     resizeHandle.style.display = cardsCollapsed ? 'none' : '';
     collapseCardsBtn.innerHTML = cardsCollapsed ? '&#9664;' : '&#9654;';
     collapseCardsBtn.title = cardsCollapsed ? 'Expand cards' : 'Collapse cards';
