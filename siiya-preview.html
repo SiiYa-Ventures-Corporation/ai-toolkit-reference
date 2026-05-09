@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>SiiYa Prompt Hub — Unified Graph Mockup</title>
+<style>
+  :root {
+    --bg: #0b0b14;
+    --panel: #14141f;
+    --panel-2: #1c1c2b;
+    --border: #2a2a3d;
+    --text: #e7e7f3;
+    --muted: #8a8aa6;
+    --siiya: #534AB7;
+    --siiya-light: #7a72d9;
+    --siiya-bg: #1a1838;
+    --teal: #1D9E75;
+    --teal-bg: #0f2a23;
+    /* toolkit category colors (match ai-toolkit-reference) */
+    --cat-agent: #fc5c7c;
+    --cat-intel: #fcac5c;
+    --cat-mcp:   #5cfc9c;
+    --cat-test:  #7c5cfc;
+    --cat-rules: #5cfcdc;
+    --cat-ref:   #fc5cdc;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 16px; }
+  header h1 { margin: 0; font-size: 20px; color: var(--siiya-light); font-weight: 600; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  header .right { margin-left: auto; display: flex; gap: 8px; }
+  .pill { background: var(--panel); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px; font-size: 12px; color: var(--text); cursor: pointer; }
+  .pill.active { background: var(--siiya); border-color: var(--siiya); color: white; }
+  .pill.kind-prompt { border-color: var(--siiya); color: var(--siiya-light); }
+  .pill.kind-toolkit { border-color: var(--cat-agent); color: var(--cat-agent); }
+
+  .toolbar { padding: 10px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .toolbar input { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 8px; min-width: 320px; outline: none; }
+  .counter { color: var(--muted); font-size: 12px; }
+  .counter b { color: var(--text); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+  main { display: grid; grid-template-columns: 1fr 380px; height: calc(100vh - 110px); }
+  .graph { position: relative; background: radial-gradient(circle at 50% 40%, #15152a 0%, var(--bg) 70%); border-right: 1px solid var(--border); }
+  .graph .label { position: absolute; left: 14px; top: 12px; font-size: 11px; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+  .graph .controls { position: absolute; right: 14px; top: 10px; display: flex; gap: 6px; }
+  .graph .controls button { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+
+  .legend { position: absolute; left: 14px; bottom: 14px; background: rgba(20,20,31,0.85); border: 1px solid var(--border); padding: 10px 12px; border-radius: 8px; font-size: 11px; backdrop-filter: blur(6px); }
+  .legend .row { display: flex; align-items: center; gap: 8px; margin: 3px 0; color: var(--muted); }
+  .legend .row b { color: var(--text); font-weight: 500; }
+  .legend .swatch-circle { width: 12px; height: 12px; border-radius: 50%; background: var(--cat-agent); }
+  .legend .swatch-square { width: 12px; height: 12px; border-radius: 3px; background: var(--siiya); }
+  .legend .edge-line { width: 22px; height: 2px; background: var(--siiya-light); }
+  .legend .edge-line.dashed { background: transparent; border-top: 2px dashed var(--siiya-light); height: 0; }
+  .legend .edge-line.gray { background: #555; }
+  .legend .edge-line.gray.dashed { border-top: 2px dashed #555; background: transparent; }
+
+  .cards { background: var(--bg); overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .card .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .card .name { font-weight: 600; font-size: 14px; }
+  .card .badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; }
+  .badge.prompt { background: var(--siiya-bg); color: var(--siiya-light); border: 1px solid var(--siiya); }
+  .badge.toolkit { background: rgba(252,92,124,0.12); color: var(--cat-agent); border: 1px solid var(--cat-agent); }
+  .badge.toolkit.intel { background: rgba(252,172,92,0.12); color: var(--cat-intel); border-color: var(--cat-intel); }
+  .badge.toolkit.mcp   { background: rgba(92,252,156,0.12); color: var(--cat-mcp);   border-color: var(--cat-mcp); }
+  .badge.toolkit.test  { background: rgba(124,92,252,0.12); color: var(--cat-test);  border-color: var(--cat-test); }
+  .badge.toolkit.rules { background: rgba(92,252,220,0.12); color: var(--cat-rules); border-color: var(--cat-rules); }
+  .card .desc { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+  .card .meta { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; font-size: 11px; color: var(--muted); }
+  .chip.link { color: var(--siiya-light); border-color: var(--siiya); }
+  .chip.link.requires { background: var(--siiya-bg); }
+
+  /* SVG node styling */
+  .node-circle { stroke: rgba(255,255,255,0.18); stroke-width: 1.5; cursor: pointer; }
+  .node-square { stroke: rgba(255,255,255,0.22); stroke-width: 1.5; cursor: pointer; }
+  .node-circle:hover, .node-square:hover { stroke: white; stroke-width: 2; }
+  .node-label { fill: var(--text); font-size: 10.5px; text-anchor: middle; pointer-events: none; font-weight: 500; }
+  .node-label.dim { fill: var(--muted); }
+  .edge { stroke-width: 1.4; fill: none; }
+  .edge.requires { stroke: var(--siiya-light); }
+  .edge.workswith { stroke: var(--siiya-light); stroke-dasharray: 4 4; }
+  .edge.chainsto  { stroke: var(--teal); }
+  .edge.related   { stroke: #555; stroke-dasharray: 3 3; }
+  .edge-label { fill: var(--muted); font-size: 9px; text-anchor: middle; }
+
+  .footer-note { padding: 8px 20px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); background: var(--panel); }
+  .footer-note code { background: var(--panel-2); padding: 1px 5px; border-radius: 3px; color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SiiYa Prompt Hub</h1>
+  <span class="sub">Prompts + AI Toolkit • Linked Knowledge Graph • SiiYa Ventures</span>
+  <div class="right">
+    <div class="pill active">All</div>
+    <div class="pill kind-prompt">Prompts</div>
+    <div class="pill kind-toolkit">Toolkit</div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <input placeholder="Search prompts and toolkit guides…" />
+  <span class="counter">
+    Showing <b>11 of 251</b> entries
+    &nbsp;·&nbsp;
+    <span class="dot" style="background:var(--siiya)"></span><b>234</b> Prompts
+    &nbsp;
+    <span class="dot" style="background:var(--cat-agent)"></span><b>6</b> Agent
+    &nbsp;
+    <span class="dot" style="background:var(--cat-intel)"></span><b>2</b> Intel
+    &nbsp;
+    <span class="dot" style="background:var(--cat-mcp)"></span><b>5</b> MCP
+    &nbsp;
+    <span class="dot" style="background:var(--cat-test)"></span><b>1</b> Test
+    &nbsp;
+    <span class="dot" style="background:var(--cat-rules)"></span><b>1</b> Rules
+    &nbsp;
+    <span class="dot" style="background:var(--cat-ref)"></span><b>1</b> Ref
+  </span>
+</div>
+
+<main>
+  <section class="graph">
+    <div class="label">Relationship Graph</div>
+    <div class="controls">
+      <button>Fit</button><button>+</button><button>−</button>
+      <button>Physics</button><button>Tree</button><button>Radial</button>
+      <button>Circle</button><button style="background:var(--siiya);color:white;border-color:var(--siiya)">Grid</button>
+      <button>PNG</button>
+    </div>
+
+    <svg viewBox="0 0 980 720" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+      <!-- ============== EDGES (drawn first so nodes overlay) ============== -->
+      <line class="edge related" x1="180" y1="180" x2="380" y2="180"/>
+      <line class="edge related" x1="380" y1="180" x2="580" y2="180"/>
+      <line class="edge related" x1="580" y1="180" x2="780" y2="180"/>
+      <line class="edge related" x1="180" y1="180" x2="780" y2="180"/>
+      <line class="edge related" x1="180" y1="380" x2="380" y2="380"/>
+      <line class="edge related" x1="380" y1="380" x2="180" y2="180"/>
+      <line class="edge related" x1="380" y1="380" x2="380" y2="180"/>
+
+      <line class="edge requires" x1="160" y1="560" x2="180" y2="380"/>
+      <text class="edge-label" x="130" y="475">requires_tool</text>
+      <line class="edge requires" x1="380" y1="560" x2="580" y2="380"/>
+      <text class="edge-label" x="495" y="465">requires_tool</text>
+      <line class="edge requires" x1="580" y1="560" x2="780" y2="380"/>
+      <text class="edge-label" x="700" y="465">requires_tool</text>
+
+      <line class="edge workswith" x1="160" y1="560" x2="180" y2="180"/>
+      <text class="edge-label" x="105" y="370">works_with</text>
+      <line class="edge workswith" x1="380" y1="560" x2="380" y2="180"/>
+      <text class="edge-label" x="345" y="370">works_with</text>
+      <line class="edge workswith" x1="800" y1="560" x2="780" y2="180"/>
+      <text class="edge-label" x="820" y="370">works_with</text>
+
+      <line class="edge chainsto" x1="160" y1="560" x2="380" y2="560"/>
+      <text class="edge-label" x="270" y="552" fill="var(--teal)">chains_to</text>
+      <line class="edge chainsto" x1="380" y1="560" x2="580" y2="560"/>
+      <text class="edge-label" x="480" y="552" fill="var(--teal)">chains_to</text>
+
+      <!-- ============== TOOLKIT NODES (circles) ============== -->
+      <circle class="node-circle" cx="180" cy="180" r="32" fill="var(--cat-agent)" />
+      <text class="node-label" x="180" y="232">Claude Code Skills</text>
+      <circle class="node-circle" cx="380" cy="180" r="28" fill="var(--cat-agent)" />
+      <text class="node-label" x="380" y="228">Claude Code Agents</text>
+      <circle class="node-circle" cx="580" cy="180" r="26" fill="var(--cat-agent)" />
+      <text class="node-label" x="580" y="225">Codex CLI</text>
+      <circle class="node-circle" cx="780" cy="180" r="28" fill="var(--cat-agent)" />
+      <text class="node-label" x="780" y="228">Everything Claude Code</text>
+
+      <circle class="node-circle" cx="180" cy="380" r="26" fill="var(--cat-intel)" />
+      <text class="node-label" x="180" y="425">GitNexus</text>
+      <circle class="node-circle" cx="380" cy="380" r="26" fill="var(--cat-mcp)" />
+      <text class="node-label" x="380" y="425">Obsidian MCP</text>
+      <circle class="node-circle" cx="580" cy="380" r="26" fill="var(--cat-test)" />
+      <text class="node-label" x="580" y="425">Playwright MCP</text>
+      <circle class="node-circle" cx="780" cy="380" r="26" fill="var(--cat-rules)" />
+      <text class="node-label" x="780" y="425">Windsurf Rules</text>
+
+      <!-- ============== PROMPT NODES (squares) ============== -->
+      <rect class="node-square" x="130" y="535" width="60" height="50" rx="8" fill="var(--siiya)" />
+      <text class="node-label" x="160" y="610">Code Reviewer</text>
+      <text class="node-label dim" x="160" y="624" style="font-size:9px">prompt</text>
+      <rect class="node-square" x="350" y="535" width="60" height="50" rx="8" fill="var(--siiya)" />
+      <text class="node-label" x="380" y="610">Vault Note Curator</text>
+      <text class="node-label dim" x="380" y="624" style="font-size:9px">prompt</text>
+      <rect class="node-square" x="550" y="535" width="60" height="50" rx="8" fill="var(--siiya)" />
+      <text class="node-label" x="580" y="610">Browser Test Writer</text>
+      <text class="node-label dim" x="580" y="624" style="font-size:9px">prompt</text>
+      <rect class="node-square" x="770" y="535" width="60" height="50" rx="8" fill="var(--siiya)" />
+      <text class="node-label" x="800" y="610">PR Description Writer</text>
+      <text class="node-label dim" x="800" y="624" style="font-size:9px">prompt</text>
+      <rect class="node-square" x="870" y="535" width="60" height="50" rx="8" fill="var(--siiya)" opacity="0.6" />
+      <text class="node-label" x="900" y="610">Linux Terminal</text>
+      <text class="node-label dim" x="900" y="624" style="font-size:9px">prompt</text>
+    </svg>
+
+    <div class="legend">
+      <div style="margin-bottom:6px"><b>Node kinds</b></div>
+      <div class="row"><span class="swatch-square"></span><b>Prompt</b> — paste-into-LLM text</div>
+      <div class="row"><span class="swatch-circle"></span><b>Toolkit</b> — tool reference guide</div>
+      <div style="margin:8px 0 6px"><b>Edge kinds</b></div>
+      <div class="row"><span class="edge-line"></span><b>requires_tool</b> — prompt needs this tool</div>
+      <div class="row"><span class="edge-line dashed"></span><b>works_with</b> — soft affinity</div>
+      <div class="row"><span class="edge-line" style="background:var(--teal)"></span><b>chains_to</b> — prompt workflow</div>
+      <div class="row"><span class="edge-line gray dashed"></span><b>related_tool</b> — toolkit graph</div>
+    </div>
+  </section>
+
+  <aside class="cards">
+    <div class="card">
+      <div class="head"><div class="name">Code Reviewer</div><div class="badge prompt">Prompt</div></div>
+      <div class="desc">Senior reviewer persona — surfaces correctness, security, and style issues with cited line numbers.</div>
+      <div class="meta">
+        <span class="chip">category: writing</span>
+        <span class="chip link requires">→ requires Claude Code Skills</span>
+        <span class="chip link">↔ works with GitNexus</span>
+        <span class="chip link">→ chains to PR Description Writer</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><div class="name">Claude Code Skills</div><div class="badge toolkit">Toolkit · Agent</div></div>
+      <div class="desc">Skill definitions — 1 custom, 6 GitNexus, 14 cluster.</div>
+      <div class="meta">
+        <span class="chip">file: Claude-Code-Skills.md</span>
+        <span class="chip link">↔ 4 prompts use this</span>
+        <span class="chip">updated: Apr 29, 2026</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><div class="name">Browser Test Writer</div><div class="badge prompt">Prompt</div></div>
+      <div class="desc">Generates Playwright specs from a feature description and acceptance criteria.</div>
+      <div class="meta">
+        <span class="chip">category: testing</span>
+        <span class="chip link requires">→ requires Playwright MCP</span>
+        <span class="chip link">↔ works with Codex CLI</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><div class="name">Playwright MCP</div><div class="badge toolkit test">Toolkit · Test</div></div>
+      <div class="desc">Browser automation — navigate, click, screenshot.</div>
+      <div class="meta">
+        <span class="chip">file: Playwright-MCP.md</span>
+        <span class="chip link">↔ 1 prompt uses this</span>
+        <span class="chip">updated: Apr 29, 2026</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><div class="name">Vault Note Curator</div><div class="badge prompt">Prompt</div></div>
+      <div class="desc">Categorizes incoming notes, suggests tags, and proposes a folder destination in Obsidian.</div>
+      <div class="meta">
+        <span class="chip">category: knowledge</span>
+        <span class="chip link requires">→ requires Obsidian MCP</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><div class="name">Obsidian MCP</div><div class="badge toolkit mcp">Toolkit · MCP</div></div>
+      <div class="desc">Vault MCP bridge — port 3010 to REST API 27124.</div>
+      <div class="meta">
+        <span class="chip">file: Obsidian-MCP.md</span>
+        <span class="chip link">↔ 1 prompt uses this</span>
+        <span class="chip">updated: Apr 29, 2026</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><div class="name">PR Description Writer</div><div class="badge prompt">Prompt</div></div>
+      <div class="desc">Drafts PR titles + bodies from a diff, citing changed files and risk areas.</div>
+      <div class="meta">
+        <span class="chip">category: writing</span>
+        <span class="chip link">↔ works with Everything Claude Code</span>
+        <span class="chip link">↔ works with GitNexus</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><div class="name">Linux Terminal</div><div class="badge prompt">Prompt</div></div>
+      <div class="desc">Classic prompts.chat seed — emulates a Linux shell.</div>
+      <div class="meta">
+        <span class="chip">category: roleplay</span>
+        <span class="chip">no toolkit links</span>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div class="footer-note">
+  Mockup only · same DB table (<code>prompts</code>), discriminated by <code>type</code> · edges via <code>PromptConnection.label</code> · D3 viz lifted from <code>ai-toolkit-reference/index.html</code>
+</div>
+
+</body>
+</html>

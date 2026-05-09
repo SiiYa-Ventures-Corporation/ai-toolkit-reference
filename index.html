@@ -184,7 +184,7 @@ code, pre { font-family:'JetBrains Mono',monospace; }
 <div class="header">
   <div>
     <h1>AI Toolkit Reference</h1>
-    <div class="meta">17 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
+    <div class="meta">19 Reference Guides &bull; SiiYa Ventures Corporation &bull; Open Source (MIT)</div>
   </div>
   <div class="header-links">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light theme">&#9788;</button>
@@ -256,7 +256,9 @@ const SHEETS = (typeof SHEET_DEFS_META !== 'undefined' ? SHEET_DEFS_META : [
   {id:14,name:"MCP Tool Configs",file:"MCP-Tool-Configs",cat:"mcp",catLabel:"MCP",color:"#5cfc9c",desc:"Per-tool JSON configs — Windsurf, Claude, ChatGPT, Codex",links:[13,10,2,1,6],updated:"Apr 29, 2026"},
   {id:15,name:"Windsurf Rules",file:"Windsurf-Rules",cat:"rules",catLabel:"Rules",color:"#5cfcdc",desc:"Terminal raw mode, frontend-only boundaries",links:[4,9,1],updated:"Apr 29, 2026"},
   {id:16,name:"500 AI Projects Reference",file:"500-AI-Projects-Reference",cat:"ref",catLabel:"Reference",color:"#fcdc5c",desc:"500+ ML/DL projects mapped to Tri-Lens",links:[],updated:"Apr 29, 2026"},
-  {id:17,name:"Arcads AI Video",file:"Arcads-AI-Video",cat:"creative",catLabel:"Creative",color:"#fc5ce8",desc:"AI video & image generation — Sora 2, Veo 3.1, Kling 3.0, Nano Banana",links:[1,2],updated:"May 6, 2026"}
+  {id:17,name:"Arcads AI Video",file:"Arcads-AI-Video",cat:"creative",catLabel:"Creative",color:"#fc5ce8",desc:"AI video & image generation — Sora 2, Veo 3.1, Kling 3.0, Nano Banana",links:[1,2],updated:"May 6, 2026"},
+  {id:18,name:"Windsurf Shortcuts",file:"Windsurf-Shortcuts",cat:"rules",catLabel:"Rules",color:"#5cfcdc",desc:"Keyboard shortcuts — Cascade, Command, autocomplete, editor",links:[15,9,14],updated:"May 9, 2026"},
+  {id:19,name:"Claude Code Shortcuts",file:"Claude-Code-Shortcuts",cat:"agent",catLabel:"AI Agent",color:"#fc5c7c",desc:"Keyboard shortcuts, slash commands, CLI flags, quick prefixes",links:[1,2,4,18],updated:"May 9, 2026"}
 ]);
 
 
@@ -278,7 +280,9 @@ const REPO_URLS = {
   14: 'https://github.com/anthropics/anthropic-quickstarts',
   15: 'https://docs.windsurf.com',
   16: '',
-  17: 'https://github.com/krusemediallc/arcads-claude-code'
+  17: 'https://github.com/krusemediallc/arcads-claude-code',
+  18: 'https://docs.windsurf.com',
+  19: 'https://docs.anthropic.com/en/docs/claude-code'
 };
 
 // Category icons
@@ -302,7 +306,9 @@ const TIPS = {
   14: 'Tip: Each AI tool needs its own JSON config. Check mcp_config/ for per-tool files.',
   15: 'Tip: terminal_raw.md forces raw output mode. Windsurf is frontend-only in Tri-Lens.',
   16: 'Tip: Browse by category (NLP, Vision, RL) to find projects relevant to your pipeline.',
-  17: 'Tip: Drop product photos in references/products/ and the agent uses them automatically.'
+  17: 'Tip: Drop product photos in references/products/ and the agent uses them automatically.',
+  18: 'Tip: Use Ctrl+L for Cascade, Ctrl+I for inline Command, and Ctrl+. to switch modes.',
+  19: 'Tip: Press ? for shortcuts, Shift+Tab to cycle permission modes, and / for all commands.'
 };
 
 // Tooltip builder — returns a styled DOM element for clean wrapping
@@ -512,26 +518,46 @@ document.getElementById('search').addEventListener('input', e => {
   updateStats();
 });
 
-// Filter buttons
+// Filter buttons — multi-select: click toggles each category, "All" resets
+let activeCats = new Set();
+function applyFilters() {
+  const showAll = activeCats.size === 0;
+  document.querySelectorAll('.card').forEach(c => {
+    c.classList.toggle('hidden', !showAll && !activeCats.has(c.dataset.cat));
+  });
+  if (showAll) {
+    resetHighlight();
+    network.setSelection({ nodes: [], edges: [] });
+  } else {
+    const ids = SHEETS.filter(s => activeCats.has(s.cat)).map(s => s.id);
+    const allNodes = nodesDS.get();
+    allNodes.forEach(n => { n.opacity = ids.includes(n.id) ? 1.0 : 0.15; });
+    nodesDS.update(allNodes);
+    network.selectNodes(ids);
+  }
+  // Sync button styles
+  document.querySelector('.filter-btn[data-cat="all"]').classList.toggle('active', showAll);
+  document.querySelectorAll('.filter-btn:not([data-cat="all"])').forEach(b => {
+    b.classList.toggle('active', activeCats.has(b.dataset.cat));
+  });
+  updateStats();
+}
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
     const cat = btn.dataset.cat;
-    document.querySelectorAll('.card').forEach(c => {
-      c.classList.toggle('hidden', cat !== 'all' && c.dataset.cat !== cat);
-    });
     if (cat === 'all') {
-      network.setSelection({ nodes: [], edges: [] });
+      activeCats.clear();
     } else {
-      const ids = SHEETS.filter(s => s.cat === cat).map(s => s.id);
-      network.selectNodes(ids);
+      if (activeCats.has(cat)) {
+        activeCats.delete(cat);
+      } else {
+        activeCats.add(cat);
+      }
     }
-    updateStats();
+    applyFilters();
   });
 });
 
-let activeStatCat = null;
 function updateStats() {
   const visible = document.querySelectorAll('.card:not(.hidden)').length;
   const total = SHEETS.length;
@@ -544,45 +570,30 @@ function updateStats() {
     { key:'ref', label:'Ref', count:SHEETS.filter(s=>s.cat==='ref').length },
     { key:'creative', label:'Creative', count:SHEETS.filter(s=>s.cat==='creative').length }
   ];
-  const allActive = activeStatCat === null ? ' active-stat' : '';
+  const allActive = activeCats.size === 0 ? ' active-stat' : '';
   const allHtml = `<span class="stat-cat${allActive}" style="color:var(--accent)" data-scat="all">All (${total})</span>`;
   const catHtml = cats.map(c => {
-    const active = activeStatCat === c.key ? ' active-stat' : '';
+    const active = activeCats.has(c.key) ? ' active-stat' : '';
     return `<span class="stat-cat${active}" style="color:var(--cat-${c.key})" data-scat="${c.key}">${c.label} (${c.count})</span>`;
   }).join(' &bull; ');
   document.getElementById('stats').innerHTML = `
     <div class="stat">Showing <span>${visible}</span> of <span>${total}</span> guides</div>
     <div class="stat">Categories: ${allHtml} &bull; ${catHtml}</div>
   `;
-  // Bind click on stat categories
+  // Bind click on stat categories — delegates to multi-select filter system
   document.querySelectorAll('.stat-cat').forEach(el => {
     el.addEventListener('click', () => {
       const cat = el.dataset.scat;
-      if (cat === 'all' || activeStatCat === cat) {
-        // Show all
-        activeStatCat = null;
-        document.querySelectorAll('.card').forEach(c => c.classList.remove('hidden'));
-        resetHighlight();
-        network.setSelection({ nodes: [], edges: [] });
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.filter-btn[data-cat="all"]').classList.add('active');
+      if (cat === 'all') {
+        activeCats.clear();
       } else {
-        activeStatCat = cat;
-        document.querySelectorAll('.card').forEach(c => {
-          c.classList.toggle('hidden', c.dataset.cat !== cat);
-        });
-        // Highlight matching nodes, dim others
-        const matchIds = SHEETS.filter(s => s.cat === cat).map(s => s.id);
-        const allNodes = nodesDS.get();
-        allNodes.forEach(n => { n.opacity = matchIds.includes(n.id) ? 1.0 : 0.15; });
-        nodesDS.update(allNodes);
-        network.selectNodes(matchIds);
-        // Sync filter buttons
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        const matchBtn = document.querySelector(`.filter-btn[data-cat="${cat}"]`);
-        if (matchBtn) matchBtn.classList.add('active');
+        if (activeCats.has(cat)) {
+          activeCats.delete(cat);
+        } else {
+          activeCats.add(cat);
+        }
       }
-      updateStats();
+      applyFilters();
     });
   });
 }
@@ -727,7 +738,7 @@ function setLayout(name) {
       physics: { enabled: false },
       interaction: defaultOpts.interaction
     });
-    const catOrder = ['agent','intel','mcp','test','rules','ref'];
+    const catOrder = ['agent','intel','mcp','test','rules','ref','creative'];
     let y = 0;
     catOrder.forEach(cat => {
       const items = SHEETS.filter(s => s.cat === cat);
