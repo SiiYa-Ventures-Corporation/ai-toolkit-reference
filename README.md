@@ -5,14 +5,14 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub Pages](https://img.shields.io/badge/Live-GitHub%20Pages-brightgreen)](https://siiya-ventures-corporation.github.io/ai-toolkit-reference/)
-![Guides](https://img.shields.io/badge/Guides-16-purple)
-![Categories](https://img.shields.io/badge/Categories-6-orange)
+![Guides](https://img.shields.io/badge/Guides-19-purple)
+![Categories](https://img.shields.io/badge/Categories-7-orange)
 
 ---
 
 ## What Is This?
 
-A single-page interactive reference for 16 AI development tools and configurations. Built for developers working with AI coding agents like Claude Code, Codex, Windsurf, and the Model Context Protocol (MCP) ecosystem.
+A single-page interactive reference for 19 AI development tools and configurations. Built for developers working with AI coding agents like Claude Code, Codex, Windsurf, and the Model Context Protocol (MCP) ecosystem.
 
 **No frameworks. No build tools. Just open `index.html` in any browser.**
 
@@ -20,30 +20,36 @@ A single-page interactive reference for 16 AI development tools and configuratio
 
 ## Features
 
-### Graph Visualization
+### Relationship Graph
 - **Interactive relationship graph** — drag, zoom, pan nodes
 - **Neighbor highlighting** — hover a node to dim unrelated tools
+- **Connected-only filtering** — select categories to show only those nodes + their direct connections
 - **Hover tooltips** — each node shows description, connections, and a learning tip
-- **Category emoji icons** — nodes display icons (🤖 🧠 🔌 🧪 📋 📚)
+- **Category emoji icons** — nodes display icons (🤖 🧠 🔌 🧪 📋 📚 🎨)
 - **Weighted edges** — stronger relationships = thicker lines
 - **Animated edge pulses** — purple dots flow along connections
-- **4 layout modes** — Force-directed, Tree ↓, Tree →, Circle
+- **5 layout modes** — Physics, Tree, Radial, Circle, Grid
 - **Physics toggle** — freeze nodes in place, drag to arrange manually
 - **Fullscreen mode** — expand graph to fill the screen (ESC to exit)
 - **PNG export** — download the current graph view as an image
 
-### Cards & Search
+### Guide Explorer (Right Panel)
 - **Expandable cards** — click to reveal full markdown content
 - **Full-text search** — filters cards AND highlights matching graph nodes
-- **Category filters** — AI Agents, Code Intel, MCP, Testing, Rules, Reference
+- **Category dropdown** — checkboxes for AI Agents, Code Intel, MCP, Testing, Rules, Reference, Creative + Apply button
+- **AI Provider dropdown** — Claude (active), ChatGPT & Gemini (coming soon placeholders)
+- **Connected-only filtering** — Apply filters to show only selected categories and their connections
 - **Click graph nodes** — jump to that tool's reference card
 - **GitHub links** — each card links directly to the source `.md` file on GitHub
 - **Updated dates** — shows last-modified date per guide
+- **Live guide count** — header shows how many guides are currently visible
 
 ### UI
-- **Dark / Light theme toggle** — click ☀ in the header
+- **SiiYa logo** — branding in the top-left header
+- **Dark / Light theme toggle** — click ☀ in the header (light theme uses darker fonts for contrast)
 - **Resizable panels** — drag the center bar to resize graph vs cards
 - **Collapsible panels** — arrow buttons to hide graph or cards
+- **Matching panel headers** — both panels have consistent styled header bars
 - **Responsive** — works on desktop and mobile
 
 ---
@@ -105,7 +111,10 @@ ai-toolkit-reference/
 │   ├── MCP-Scripts.md
 │   ├── MCP-Tool-Configs.md
 │   ├── Windsurf-Rules.md
-│   └── 500-AI-Projects-Reference.md
+│   ├── 500-AI-Projects-Reference.md
+│   ├── Arcads-AI-Video.md
+│   ├── Windsurf-Shortcuts.md
+│   └── Claude-Code-Shortcuts.md
 ├── setup.js                      # One-command setup script (run this!)
 ├── .github/workflows/
 │   └── update-ui.yml             # Auto-rebuilds on push to guides/
@@ -210,14 +219,14 @@ GitHub Actions will auto-deploy. If you're running locally, just refresh the bro
 | `test` | Testing | Purple | `#7c5cfc` |
 | `rules` | Rules | Teal | `#5cfcdc` |
 | `ref` | Reference | Yellow | `#fcdc5c` |
+| `creative` | Creative | Pink | `#fc5ce8` |
 
 ### Adding a new category
 
 1. Pick a key, label, and color
 2. Add a CSS variable in `index.html`: `--cat-mycat: #hexcolor;`
-3. Add a filter button in the HTML: `<button class="filter-btn" data-cat="mycat">My Category</button>`
-4. Add the `.active` style: `.filter-btn[data-cat="mycat"].active { background:var(--cat-mycat); }`
-5. Use the key in your `SHEET_DEFS` entry
+3. Add a checkbox in the Categories dropdown in `index.html`
+4. Use the key in your `SHEET_DEFS` entry
 
 ---
 
