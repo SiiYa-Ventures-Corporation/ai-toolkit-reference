@@ -32,7 +32,10 @@ const SHEET_DEFS = [
   { id:13, name:"MCP Scripts", file:"MCP-Scripts", cat:"mcp", catLabel:"MCP", color:"#5cfc9c", desc:"7 launcher scripts — HTTP, stdio, clean restart", links:[14,10,11,12] },
   { id:14, name:"MCP Tool Configs", file:"MCP-Tool-Configs", cat:"mcp", catLabel:"MCP", color:"#5cfc9c", desc:"Per-tool JSON configs — Windsurf, Claude, ChatGPT, Codex", links:[13,10,2,1,6] },
   { id:15, name:"Windsurf Rules", file:"Windsurf-Rules", cat:"rules", catLabel:"Rules", color:"#5cfcdc", desc:"Terminal raw mode, frontend-only boundaries", links:[4,9,1] },
-  { id:16, name:"500 AI Projects Reference", file:"500-AI-Projects-Reference", cat:"ref", catLabel:"Reference", color:"#fcdc5c", desc:"500+ ML/DL projects mapped to Tri-Lens", links:[] }
+  { id:16, name:"500 AI Projects Reference", file:"500-AI-Projects-Reference", cat:"ref", catLabel:"Reference", color:"#fcdc5c", desc:"500+ ML/DL projects mapped to Tri-Lens", links:[] },
+  { id:17, name:"Arcads AI Video", file:"Arcads-AI-Video", cat:"creative", catLabel:"Creative", color:"#fc5ce8", desc:"AI video & image generation — Sora 2, Veo 3.1, Kling 3.0, Nano Banana", links:[1,2] },
+  { id:18, name:"Windsurf Shortcuts", file:"Windsurf-Shortcuts", cat:"rules", catLabel:"Rules", color:"#5cfcdc", desc:"Keyboard shortcuts — Cascade, Command, autocomplete, editor", links:[15,9,14] },
+  { id:19, name:"Claude Code Shortcuts", file:"Claude-Code-Shortcuts", cat:"agent", catLabel:"AI Agent", color:"#fc5c7c", desc:"Keyboard shortcuts, slash commands, CLI flags, quick prefixes", links:[1,2,4,18] }
 ];
 
 function getLastModified(filePath) {
