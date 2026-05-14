@@ -1,4 +1,4 @@
-# SiiYa Prompt Hub — Project Summary
+# SiiYa Prompt Library — Project Summary
 
 ## What it is
 
