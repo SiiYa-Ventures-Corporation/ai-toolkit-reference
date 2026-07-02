@@ -1,5 +1,49 @@
 # AI Toolkit Reference
 
+<!-- SIIYA-ECOSYSTEM-MAP:START (shared block — identical across all SiiYa repos; edit once, mirror to each README) -->
+## 🗺️ SiiYa Ecosystem Map
+
+_What every repo in the SiiYa ecosystem is for, so usage is trackable at a glance. This block is mirrored verbatim on the home page (README) of every repo. Last updated 2026-07-02._
+
+**Platform & operations** — the shared foundation every product builds on.
+
+| Repo | What it's used for | Stack · default |
+|---|---|---|
+| **[ai-operating-system](https://github.com/SiiYa-Ventures-Corporation/ai-operating-system)** | The shared **AI Operating System** — standards, agent roles, skills, governance/approval gates, prompt library, templates, memory architecture. Defines *how* products are built; consumed by every repo **by reference**. No product code. | Standards · `main` |
+| **[siiya-workspace](https://github.com/SiiYa-Ventures-Corporation/siiya-workspace)** | Dev-environment **bootstrap** + Claude **state-durability store** — clones/syncs every repo, session-start health checks, persists `claude-state` snapshots so agent state survives Codespace rebuilds. No product code. | Shell + YAML · `main` |
+| **[agent-command-center](https://github.com/SiiYa-Ventures-Corporation/agent-command-center)** (ACC) | Operator **admin console** for the Tri-Lens platform — Mission Control, Orchestrator Runtime, Agents Live, Blocker & Evidence Centers, Repository Index, Reports, Settings. | React + Vite + Firebase · `dev` |
+
+**Tri-Lens** — the trust-intelligence / news-scoring product.
+
+| Repo | What it's used for | Stack · default |
+|---|---|---|
+| **[tri-lens-pipeline](https://github.com/SiiYa-Ventures-Corporation/tri-lens-pipeline)** | The **core Tri-Lens platform** — deterministic, auditable Tri-Score scoring engine, backend pipeline, API, and the canonical architecture/ADR library. | Python pipeline · `main` |
+| **[welcome-aboard](https://github.com/SiiYa-Ventures-Corporation/welcome-aboard)** | The **Tri-Lens feed / news portal UI** (dev-portal) — reader-facing front-end, per Design System v2.1. | React (Lovable) · `dev` |
+| **[siiya-website](https://github.com/SiiYa-Ventures-Corporation/siiya-website)** | Public **landing site — apps.siiya.online** — marketing/login/legal pages; pulls live scoring from `trilens-api`. Static, Firebase Hosting. | Static HTML + Firebase · `dev` |
+
+**Civic Lens** — the civic-intelligence product family.
+
+| Repo | What it's used for | Stack · default |
+|---|---|---|
+| **[civic-lens](https://github.com/SiiYa-Ventures-Corporation/civic-lens)** | The **Civic Lens platform** — evidence ingestion, scoring, timelines, API and UI. Helps voters understand officials through verified evidence, never inference. | Platform · `main` |
+| **[civic-lens-data-connectors](https://github.com/SiiYa-Ventures-Corporation/civic-lens-data-connectors)** | **Ingestion edge** — external data-source connectors pulling raw public records into the immutable evidence store. | Connectors · `main` |
+| **[civic-lens-docs](https://github.com/SiiYa-Ventures-Corporation/civic-lens-docs)** | Civic Lens **knowledge base & docs** — evidence standards, ADR library, research, prompt library, scoring rules, benchmark cases. | Docs · `main` |
+| **[civic-lens-ontology](https://github.com/SiiYa-Ventures-Corporation/civic-lens-ontology)** | The Civic Lens **ontology** — entity definitions, attributes, relationship schemas, entity-resolution rules, versioning. | Ontology · `main` |
+| _civic-lens-knowledge_ | Reserved placeholder for the Civic Lens knowledge function — **not yet initialized** (no code). | — |
+
+**Supporting & shared.**
+
+| Repo | What it's used for | Stack · default |
+|---|---|---|
+| **[siiya-marketing](https://github.com/SiiYa-Ventures-Corporation/siiya-marketing)** | Marketing & brand **source of truth** — brand guidelines, design assets, media, collateral. `siiya-website`/apps consume from here. | Assets · `main` |
+| **[siiya-testing](https://github.com/SiiYa-Ventures-Corporation/siiya-testing)** | Reusable **testing + bug-tracking template** for SiiYa repos — CI workflow, issue templates. Self-contained. | Template · `main` |
+| **[ai-toolkit-reference](https://github.com/SiiYa-Ventures-Corporation/ai-toolkit-reference)** | Interactive **visual reference** for AI coding tools, agents, and MCP configs. Zero-dependency static site (GitHub Pages). | Static site · `main` |
+| **[outcome-intelligence](https://github.com/SiiYa-Ventures-Corporation/outcome-intelligence)** | **Future product** (roadmap) — causal reasoning & scenario-modeling platform. Built on the AI OS; not yet in active development. | Roadmap · `main` |
+
+> Maintained as a single shared block delimited by `SIIYA-ECOSYSTEM-MAP:START/END` markers. To update: edit once and re-mirror the block into each repo's README between the same markers.
+<!-- SIIYA-ECOSYSTEM-MAP:END -->
+
+
 > Interactive visual reference for AI coding tools, agents, and MCP configurations.
 > Zero frameworks. Zero npm dependencies. Just open `index.html`.
 
